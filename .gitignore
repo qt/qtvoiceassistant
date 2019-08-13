@@ -1,0 +1,11 @@
+.qmake.stash
+.build
+Makefile
+*.pro.user
+package-tmp/
+moc_*.cpp
+*.o
+plugins/*/.moc/
+plugins/alexaauth/libalexaauth.so
+plugins/alexainterface/libalexainterface.so
+

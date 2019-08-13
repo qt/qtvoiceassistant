@@ -1,0 +1,46 @@
+{
+   "cblAuthDelegate":{
+        "databaseFilePath":"database/cblAuthDelegate.db"
+   },
+   "deviceInfo":{
+       "deviceSerialNumber":"123456",
+        "clientId":"amzn1.application-oa2-client.a92e3edd0c8542a6bafcd89e5f125851",
+       "productId":"QtAutoAlexa"
+   },
+   "capabilitiesDelegate":{
+       "capabilities":[
+           {
+                "type": "AlexaInterface",
+                "interface": "InteractionModel",
+                "version": "1.0"
+           }
+       ]
+   },
+   "miscDatabase":{
+       "databaseFilePath":"database/miscDatabase.db"
+   },
+   "alertsCapabilityAgent":{
+       "databaseFilePath":"database/alerts.db"
+   },
+   "settings":{
+       "databaseFilePath":"database/settings.db",
+       "defaultAVSClientSettings":{
+           "locale":"en-US"
+       }
+   },
+   "deviceSettings":{
+       "databaseFilePath":"database/deviceSettings.db"
+   },
+   "bluetooth" : {
+       "databaseFilePath":"database/bluetooth.db"
+   },
+   "certifiedSender":{
+       "databaseFilePath":"database/certifiedsender.db"
+   },
+   "notifications":{
+       "databaseFilePath":"database/notifications.db"
+   },
+   "sampleApp":{
+       "displayCardsSupported":true
+   }
+}
