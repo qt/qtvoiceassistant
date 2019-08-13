@@ -29,40 +29,41 @@
 **
 ****************************************************************************/
 
-#ifndef BASECARD_H
-#define BASECARD_H
+#ifndef VEHICLEINTENTCARD_H
+#define VEHICLEINTENTCARD_H
 
 #include <QObject>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include "BaseCard.h"
 
-class BaseCard : public QObject
+
+class VehicleIntentCard : public BaseCard
 {
     Q_OBJECT
-    Q_PROPERTY(Type type READ type WRITE setType NOTIFY typeChanged)
+
+    Q_PROPERTY(QString action READ action NOTIFY actionChanged)
+    Q_PROPERTY(QString side READ side NOTIFY sideChanged)
+    Q_PROPERTY(QString part READ part NOTIFY partChanged)
 
 public:
-    enum Type {
-        Weather,
-        Info,
-        VehicleIntent,
-        Unknown
-    };
-    Q_ENUM(Type)
 
-    explicit BaseCard(QObject *parent = nullptr);
+    explicit VehicleIntentCard(QObject *parent = nullptr);
+    void setJsonDocument(QJsonDocument jsonDocument) override;
 
-    void setType(Type type);
-    Type type() const { return m_type; }
-
-    virtual void setJsonDocument(QJsonDocument jsonDocument) = 0;
-
+    QString action() const;
+    QString side() const;
+    QString part() const;
 Q_SIGNALS:
-    void typeChanged(Type type);
-
-public Q_SLOTS:
+    void actionChanged();
+    void sideChanged();
+    void partChanged();
 
 private:
-    Type m_type = Type::Unknown;
+    QString m_action = QStringLiteral("unknown");
+    QString m_side = QStringLiteral("unknown");
+    QString m_part = QStringLiteral("unknown");
 };
 
-#endif // BASECARD_H
+#endif // VEHICLEINTENTCARD_H

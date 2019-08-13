@@ -29,40 +29,44 @@
 **
 ****************************************************************************/
 
-#ifndef BASECARD_H
-#define BASECARD_H
+#include "vehicleintentcard.h"
+#include <QDebug>
 
-#include <QObject>
-#include <QJsonDocument>
-
-class BaseCard : public QObject
+VehicleIntentCard::VehicleIntentCard(QObject *parent)
+    : BaseCard(parent)
 {
-    Q_OBJECT
-    Q_PROPERTY(Type type READ type WRITE setType NOTIFY typeChanged)
+    setType(BaseCard::VehicleIntent);
 
-public:
-    enum Type {
-        Weather,
-        Info,
-        VehicleIntent,
-        Unknown
-    };
-    Q_ENUM(Type)
+}
 
-    explicit BaseCard(QObject *parent = nullptr);
+void VehicleIntentCard::setJsonDocument(QJsonDocument jsonDocument)
+{
+    QJsonObject jsonObj = jsonDocument.object();
 
-    void setType(Type type);
-    Type type() const { return m_type; }
+    QString jsonString = jsonObj["textField"].toString();
 
-    virtual void setJsonDocument(QJsonDocument jsonDocument) = 0;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+    QJsonObject obj = doc.object();
 
-Q_SIGNALS:
-    void typeChanged(Type type);
+    //TODO: check for matching
 
-public Q_SLOTS:
+    m_action = obj["slots"].toObject()["action"].toObject()["value"].toString();
+    m_side = obj["slots"].toObject()["side"].toObject()["value"].toString();
+    m_part = obj["slots"].toObject()["part"].toObject()["value"].toString();
 
-private:
-    Type m_type = Type::Unknown;
-};
+    Q_EMIT actionChanged();
+    Q_EMIT sideChanged();
+    Q_EMIT partChanged();
+}
 
-#endif // BASECARD_H
+QString VehicleIntentCard::action() const{
+    return m_action;
+}
+
+QString VehicleIntentCard::side() const{
+    return m_side;
+}
+
+QString VehicleIntentCard::part() const{
+    return m_part;
+}

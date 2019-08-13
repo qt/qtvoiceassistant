@@ -33,11 +33,12 @@ import QtQuick 2.12
 import QtQuick.Controls 2.5
 import QtGraphicalEffects 1.0
 import QtQuick.Layouts 1.12
+import QtApplicationManager 2.0
 
 import shared.Style 1.0
 import shared.controls 1.0
 import shared.Sizes 1.0
-
+import shared.utils 1.0
 import alexainterface 1.0
 
 Control {
@@ -194,6 +195,18 @@ Control {
             } else if (card.type === BaseCard.Info) {
                 priv.cardData = card
                 priv.createCardObjects("InfoCard.qml")
+            } else if (card.type === BaseCard.VehicleIntent) {
+                var request = IntentClient.sendIntentRequest("vehicle-control",
+                                                             "com.luxoft.vehicle",
+                                                             {action: card.action, side: card.side, part: card.part });
+                request.onReplyReceived.connect(function() {
+                    if (request.succeeded) {
+                        var result = request.result
+                        console.log(Logging.apps, "Intent result: " + result.done)
+                    } else {
+                        console.log(Logging.apps, "Intent request failed: " + request.errorMessage)
+                    }
+                });
             }
         }
     }

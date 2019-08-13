@@ -1,7 +1,7 @@
 .qmake.stash
 .build
 Makefile
-*.pro.user
+*.pro.user*
 package-tmp/
 moc_*.cpp
 *.o

@@ -57,7 +57,8 @@ SOURCES += \
         SampleEqualizerModeController.cpp \
         DialogStateManager.cpp \
         CapabilitiesManager.cpp \
-        QtMicrophoneWrapper.cpp
+        QtMicrophoneWrapper.cpp \
+        vehicleintentcard.cpp
 
 HEADERS += \
         AuthManager.h \
@@ -74,7 +75,8 @@ HEADERS += \
         SampleEqualizerModeController.h \
         DialogStateManager.h \
         CapabilitiesManager.h \
-        QtMicrophoneWrapper.h
+        QtMicrophoneWrapper.h \
+        vehicleintentcard.h
 
 DISTFILES = qmldir
 

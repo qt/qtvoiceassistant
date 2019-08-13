@@ -603,15 +603,32 @@ bool AlexaInterface::initialize(
      */
     m_authManager = std::make_shared<AuthManager>(this);
 
+    QObject::connect(m_authManager.get(), &AuthManager::authStateChanged, this,
+                     &AlexaInterface::onAuthStateChanged, Qt::QueuedConnection);
+    QObject::connect(m_authManager.get(), &AuthManager::authErrorChanged, this,
+                     &AlexaInterface::onAuthErrorChanged, Qt::QueuedConnection);
+    QObject::connect(m_authManager.get(), &AuthManager::isLoggedInChanged, this,
+                     &AlexaInterface::onIsLoggedInChanged, Qt::QueuedConnection);
+    QObject::connect(m_authManager.get(), &AuthManager::authCodeReady, this,
+                     &AlexaInterface::onAuthCodeReady, Qt::QueuedConnection);
+
     /*
      * ConnectionManager - component that observes the application connection process.
      */
     m_connectionManager = std::make_shared<ConnectionManager>(this);
 
+    QObject::connect(m_connectionManager.get(), &ConnectionManager::connectionStatusChanged, this,
+                     &AlexaInterface::onConnectionStatusChanged, Qt::QueuedConnection);
+
     /*
      * DialogStateManager - component that observes the application dialog states.
      */
     m_dialogStateManager = std::make_shared<DialogStateManager>(this);
+
+    QObject::connect(m_dialogStateManager.get(), &DialogStateManager::dialogStateChanged, this, [=](){
+        m_dialogState = m_dialogStateManager->dialogState();
+        Q_EMIT dialogStateChanged();
+    } );
 
     /*
      * CapabilitiesManager - a component that observers a state of the CapabilitiesDelegate
@@ -796,6 +813,42 @@ bool AlexaInterface::initialize(
         client->addTemplateRuntimeObserver(m_guiRenderer);
     }
 
+    QObject::connect(m_guiRenderer.get(), &GuiRenderer::templateCardContentReady, this, [=](QString jsonString) {
+
+        QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+        QJsonObject obj = doc.object();
+        QString type = obj["type"].toString();
+
+        if (type == "WeatherTemplate") {
+            QObject *p = qobject_cast<QObject*>(this);
+            if (p) {
+                WeatherCard *weatherCard = new WeatherCard(p);
+                weatherCard->setJsonDocument(doc);
+                Q_EMIT cardReady(weatherCard);
+            } else {
+                qWarning() << "Failed to create a weather card!";
+            }
+        } else if ((type == "BodyTemplate1") || (type == "BodyTemplate2")) {
+            QObject *p = qobject_cast<QObject*>(this);
+            if (p) {
+                QString title = obj["title"].toObject()["mainTitle"].toString();
+                if (title == "amzn1.ask.skill.245b836a-df7a-4407-a6a9-ccc2afd2c73e") {
+                    VehicleIntentCard *card = new VehicleIntentCard(p);
+                    card->setJsonDocument(doc);
+                    Q_EMIT cardReady(card);
+                } else {
+                    InfoCard *infoCard = new InfoCard(p);
+                    infoCard->setJsonDocument(doc);
+                    Q_EMIT cardReady(infoCard);
+                }
+            } else {
+                qWarning() << "Failed to create an info card!";
+            }
+        }
+        else qWarning() << "Unknown card type";
+
+    });
+
 
     /*
      * Creating the buffer (Shared Data Stream) that will hold user audio data. This is the main input into the SDK.
@@ -933,70 +986,6 @@ bool AlexaInterface::initialize(
     // Send default settings set by the user to AVS.
     client->sendDefaultSettings();
 
-
-    QObject::connect(m_authManager.get(), &AuthManager::authStateChanged, this, [=](){
-        m_authState = m_authManager->authState();
-        Q_EMIT authStateChanged();
-    } );
-
-    QObject::connect(m_authManager.get(), &AuthManager::authErrorChanged, this, [=](){
-        m_authError = m_authManager->authError();
-        Q_EMIT authErrorChanged();
-    } );
-
-    QObject::connect(m_authManager.get(), &AuthManager::isLoggedInChanged, this, [=](){
-        m_loggedIn = m_authManager->isLoggedIn();
-        Q_EMIT loggedInChanged();
-    } );
-
-    QObject::connect(m_connectionManager.get(), &ConnectionManager::connectionStatusChanged, this, [=](){
-        m_connectionStatus = m_connectionManager->connectionStatus();
-        Q_EMIT connectionStatusChanged();
-    } );
-
-    QObject::connect(m_dialogStateManager.get(), &DialogStateManager::dialogStateChanged, this, [=](){
-        m_dialogState = m_dialogStateManager->dialogState();
-        Q_EMIT dialogStateChanged();
-    } );
-
-
-    QObject::connect(m_authManager.get(), &AuthManager::authCodeReady, this, [=](QString authURL, QString authCode) {
-        m_authUrl = authURL;
-        Q_EMIT authUrlChanged();
-
-        m_authCode = authCode;
-        Q_EMIT authCodeChanged();
-    } );
-
-    QObject::connect(m_guiRenderer.get(), &GuiRenderer::templateCardContentReady, this, [=](QString jsonString) {
-
-        QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
-        QJsonObject obj = doc.object();
-        QString type = obj["type"].toString();
-
-        if (type == "WeatherTemplate") {
-            QObject *p = qobject_cast<QObject*>(this);
-            if (p) {
-                WeatherCard *weatherCard = new WeatherCard(p);
-                weatherCard->setJsonDocument(doc);
-                Q_EMIT cardReady(weatherCard);
-            } else {
-                qWarning() << "Failed to create a weather card!";
-            }
-        } else if ((type == "BodyTemplate1") || (type == "BodyTemplate2")) {
-            QObject *p = qobject_cast<QObject*>(this);
-            if (p) {
-                InfoCard *infoCard = new InfoCard(p);
-                infoCard->setJsonDocument(doc);
-                Q_EMIT cardReady(infoCard);
-            } else {
-                qWarning() << "Failed to create an info card!";
-            }
-        }
-        else qWarning() << "Unknown card type";
-
-    });
-
     return true;
 }
 
@@ -1064,3 +1053,30 @@ void AlexaInterface::setLogLevel(AlexaInterface::LogLevel logLevel)
     Q_EMIT logLevelChanged();
 }
 
+void AlexaInterface::onAuthStateChanged() {
+    m_authState = m_authManager->authState();
+    Q_EMIT authStateChanged();
+}
+
+void AlexaInterface::onAuthErrorChanged() {
+    m_authError = m_authManager->authError();
+    Q_EMIT authErrorChanged();
+}
+
+void AlexaInterface::onIsLoggedInChanged() {
+    m_loggedIn = m_authManager->isLoggedIn();
+    Q_EMIT loggedInChanged();
+}
+
+void AlexaInterface::onAuthCodeReady(QString authURL, QString authCode) {
+    m_authUrl = authURL;
+    Q_EMIT authUrlChanged();
+
+    m_authCode = authCode;
+    Q_EMIT authCodeChanged();
+}
+
+void AlexaInterface::onConnectionStatusChanged() {
+    m_connectionStatus = m_connectionManager->connectionStatus();
+    Q_EMIT connectionStatusChanged();
+}

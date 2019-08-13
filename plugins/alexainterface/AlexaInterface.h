@@ -63,6 +63,7 @@
 
 #include "WeatherCard.h"
 #include "InfoCard.h"
+#include "vehicleintentcard.h"
 
 using namespace alexaClientSDK;
 
@@ -192,6 +193,13 @@ public:
 
 public Q_SLOTS:
     void setLogLevel(LogLevel logLevel);
+
+private Q_SLOTS:
+    void onAuthStateChanged();
+    void onAuthErrorChanged();
+    void onIsLoggedInChanged();
+    void onAuthCodeReady(QString authUrl, QString authCode);
+    void onConnectionStatusChanged();
 
 Q_SIGNALS:
     void dialogStateChanged();
