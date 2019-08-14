@@ -46,7 +46,6 @@ import shared.Sizes 1.0
 Control {
     id: root
 
-    property var alexaInterface
     property var alexaAuth
     property bool authorizationRequested: false
 
@@ -122,8 +121,8 @@ Control {
             height: Sizes.dp(60)
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: Sizes.fontSizeM
-            text: "Your code: " + alexaInterface.authCode
-            visible: alexaInterface.authCode !== ""
+            text: "Your code: " + AlexaInterface.authCode
+            visible: AlexaInterface.authCode !== ""
         }
 
         WebView {
@@ -132,7 +131,7 @@ Control {
             width: parent.width
             height: Sizes.dp(700)
             anchors.horizontalCenter: parent.horizontalCenter
-            url: alexaInterface.authUrl
+            url: AlexaInterface.authUrl
             visible: url !== ""
         }
 

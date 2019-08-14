@@ -44,7 +44,6 @@ import alexainterface 1.0
 Control {
     id: root
 
-    property var alexaInterface
     property string neptuneState: "Maximized"
 
     state: {
@@ -187,7 +186,7 @@ Control {
     }
 
     Connections {
-        target: alexaInterface
+        target: AlexaInterface
         onCardReady: {
             if (card.type === BaseCard.Weather) {
                 priv.cardData = card
@@ -246,7 +245,7 @@ Control {
             anchors.right: parent.right
             height: parent.height
             Rectangle {
-                width: interactionButton.width * ( 1.0 + 0.3 * alexaInterface.audioLevel )
+                width: interactionButton.width * ( 1.0 + 0.3 * AlexaInterface.audioLevel )
                 height: width
                 anchors.centerIn: interactionButton
                 radius: width / 2
@@ -272,24 +271,24 @@ Control {
                 background: Rectangle {
                     anchors.fill: parent
                     radius: width / 2
-                    color: alexaInterface.connectionStatus === AlexaInterface.Connected ? "#00caff" : "lightgrey"
+                    color: AlexaInterface.connectionStatus === Alexa.Connected ? "#00caff" : "lightgrey"
                 }
 
                 icon.height: interactionButton.height/2
                 icon.width: interactionButton.width/2
                 icon.source: {
-                    if (alexaInterface.dialogState === AlexaInterface.Speaking) {
+                    if (AlexaInterface.dialogState === Alexa.Speaking) {
                         return Qt.resolvedUrl("assets/ic_speaking.png")
-                    } else if (alexaInterface.dialogState === AlexaInterface.Thinking) {
+                    } else if (AlexaInterface.dialogState === Alexa.Thinking) {
                         return Qt.resolvedUrl("assets/ic_thinking.png")
                     } else {
                         return Qt.resolvedUrl("assets/ic_microphone.png")
                     }
                 }
-                enabled: alexaInterface.connectionStatus === AlexaInterface.Connected
+                enabled: AlexaInterface.connectionStatus === Alexa.Connected
                 onClicked: {
-                    if (alexaInterface.dialogState === AlexaInterface.Idle) {
-                        alexaInterface.tapToTalk()
+                    if (AlexaInterface.dialogState === Alexa.Idle) {
+                        AlexaInterface.tapToTalk()
                     }
                 }
 
@@ -306,7 +305,7 @@ Control {
                     anchors.fill: busyIndicator
                     source: busyIndicator
                     color: "#0071ff"
-                    visible: (alexaInterface.dialogState === AlexaInterface.Listening) || (alexaInterface.dialogState === AlexaInterface.Thinking)
+                    visible: (AlexaInterface.dialogState === Alexa.Listening) || (AlexaInterface.dialogState === Alexa.Thinking)
                     RotationAnimation on rotation {
                         loops: Animation.Infinite
                         from: 0
@@ -323,12 +322,12 @@ Control {
                 anchors.topMargin: Sizes.dp(600) + interactionButton.height + Sizes.dp(100)
                 width: parent.width > Sizes.dp(270) ? Sizes.dp(270) : parent.width
                 height: Sizes.dp(70)
-                opacity: (alexaInterface.dialogState === AlexaInterface.Listening) || (alexaInterface.dialogState === AlexaInterface.Speaking) ? 1 : 0
+                opacity: (AlexaInterface.dialogState === Alexa.Listening) || (AlexaInterface.dialogState === Alexa.Speaking) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 100 } }
                 visible: opacity > 0
                 text: qsTr("STOP")
                 font.pixelSize: Sizes.fontSizeM
-                onClicked: alexaInterface.stopTalking()
+                onClicked: AlexaInterface.stopTalking()
                 background: ButtonBackground {
                     anchors.fill: parent
                     opacity: 1

@@ -41,7 +41,8 @@
 void AlexaPlugin::registerTypes(const char *uri)
 {
     // @uri alexa
-    qmlRegisterType<AlexaInterface>(uri, 1, 0, "AlexaInterface");
+    qmlRegisterSingletonType<AlexaInterface>(uri, 1, 0, "AlexaInterface", alexaInterfaceSingletonProvider);
+    qmlRegisterUncreatableType<AlexaInterface>(uri, 1, 0, "Alexa", "Non instantiable type");
     qmlRegisterUncreatableType<InfoCard>(uri, 1, 0, "InfoCard", "Non instantiable type");
     qmlRegisterUncreatableType<WeatherCard>(uri, 1, 0, "WeatherCard", "Non instantiable type");
     qmlRegisterUncreatableType<BaseCard>(uri, 1, 0, "BaseCard", "Non instantiable type");

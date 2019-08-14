@@ -61,6 +61,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QQmlEngine>
 
 #include "WeatherCard.h"
 #include "InfoCard.h"
@@ -333,5 +334,14 @@ private:
 #endif
 };
 
+static QObject *alexaInterfaceSingletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    AlexaInterface *singletonObject = new AlexaInterface();
+    singletonObject->initAlexaQMLClient();
+    return singletonObject;
+}
 
 #endif  // ALEXA_INTERFACE_H_

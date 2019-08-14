@@ -73,9 +73,8 @@ ApplicationCCWindow {
             httpUserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36"
         }
 
-        AlexaInterface {
-            id: alexa
-            logLevel: AlexaInterface.Info
+        Connections {
+            target: AlexaInterface
             onAuthCodeChanged: {
                 if (authCode !== "") {
                     alexaAuth.authCode = authCode
@@ -84,6 +83,9 @@ ApplicationCCWindow {
             onAuthUrlChanged: {
                 alexaAuth.authUrl = authUrl
             }
+            Component.onCompleted: {
+                AlexaInterface.logLevel = Alexa.Debug9
+            }
         }
 
         Header {
@@ -91,7 +93,6 @@ ApplicationCCWindow {
             anchors.topMargin: Sizes.dp(80)
             anchors.horizontalCenter: parent.horizontalCenter
             unfoldHeader: alexaView.visible || authView.visible
-            alexaInterface: alexa
             visible: root.neptuneState === "Maximized"
         }
 
@@ -105,20 +106,16 @@ ApplicationCCWindow {
             AlexaView {
                 id: alexaView
                 anchors.fill: parent
-                alexaInterface: alexa
-                visible: alexaInterface.authState === AlexaInterface.Refreshed
+                visible: AlexaInterface.authState === Alexa.Refreshed
                 neptuneState: root.neptuneState
             }
 
             AuthView {
                 id: authView
                 anchors.fill: parent
-                alexaInterface: alexa
                 alexaAuth: alexaAuth
-                visible: alexaInterface.authState !== AlexaInterface.Refreshed
+                visible: AlexaInterface.authState !== Alexa.Refreshed
             }
         }
-
-        Component.onCompleted: alexa.initAlexaQMLClient()
     }
 }

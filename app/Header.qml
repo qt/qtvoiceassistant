@@ -37,9 +37,7 @@ import alexainterface 1.0
 
 Control {
     id: root
-
     property bool unfoldHeader: false
-    property var alexaInterface
 
     QtObject {
         id: privateData
@@ -82,17 +80,17 @@ Control {
                 width: Sizes.dp(26)
                 height: width
                 radius: width/2
-                color: alexaInterface.connectionStatus === AlexaInterface.Connected ? "#32CD32" :
-                                                                             (alexaInterface.connectionStatus === AlexaInterface.Disconnected) ?
-                                                                                 "red" : "grey"
+                color: AlexaInterface.connectionStatus === Alexa.Connected ? "#32CD32" :
+                        (AlexaInterface.connectionStatus === Alexa.Disconnected) ?
+                        "red" : "grey"
             }
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: Sizes.fontSizeS
                 text: {
-                    if (alexaInterface.connectionStatus === AlexaInterface.Pending)
+                    if (AlexaInterface.connectionStatus === Alexa.Pending)
                         return qsTr("Pending")
-                    else if (alexaInterface.connectionStatus === AlexaInterface.Connected)
+                    else if (AlexaInterface.connectionStatus === Alexa.Connected)
                         return qsTr("Connected")
                     else return qsTr("Disconnected")
                 }
