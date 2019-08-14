@@ -51,7 +51,8 @@ public:
      * @param stream The shared data stream to write to.
      * @return A unique_ptr to a @c QtMicrophoneWrapper if creation was successful and @c nullptr otherwise.
      */
-    static std::unique_ptr<QtMicrophoneWrapper> create(std::shared_ptr<avsCommon::avs::AudioInputStream> stream);
+    static std::unique_ptr<QtMicrophoneWrapper> create(std::shared_ptr<avsCommon::avs::AudioInputStream> stream,
+                                                       const QString &deviceName);
 
     /**
      * Stops streaming from the microphone.
@@ -76,13 +77,15 @@ private:
      */
     QtMicrophoneWrapper(std::shared_ptr<avsCommon::avs::AudioInputStream> stream);
 
+    QAudioDeviceInfo m_audioInfo;
     QAudioInput *m_audioInput = nullptr;
     QIODevice *m_audioInputIODevice = nullptr;
     int m_readAudioDataBytes = 0;
     QByteArray m_readAudioData;
 
     /// Initializes Audio
-    bool initialize();
+    bool initialize(const QString &deviceName);
+    void setAudioDevice(const QString &deviceName);
 
     /// The stream of audio data.
     const std::shared_ptr<avsCommon::avs::AudioInputStream> m_audioInputStream;

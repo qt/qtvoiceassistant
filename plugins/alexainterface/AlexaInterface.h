@@ -44,6 +44,7 @@
 #include "ConnectionManager.h"
 #include "DialogStateManager.h"
 #include "CapabilitiesManager.h"
+#include "QtMicrophoneWrapper.h"
 
 #ifdef KWD
 #include <KWD/AbstractKeywordDetector.h>
@@ -273,6 +274,9 @@ private:
 
     // Capabilities Manager
     std::shared_ptr<CapabilitiesManager> m_capabilitiesManager;
+
+    // Microphone Wrapper
+    std::shared_ptr<QtMicrophoneWrapper> m_micWrapper;
 
     /// The @c GuiRender which provides an abstraction to visual rendering
     std::shared_ptr<GuiRenderer> m_guiRenderer;

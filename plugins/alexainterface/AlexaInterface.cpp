@@ -33,6 +33,7 @@
 #include <ACL/Transport/HTTP2TransportFactory.h>
 #include <ACL/Transport/PostConnectSynchronizer.h>
 #include <AVSCommon/Utils/LibcurlUtils/LibcurlHTTP2ConnectionFactory.h>
+#include <QSettings>
 
 #include "KeywordObserver.h"
 #include "AlexaInterface.h"
@@ -309,7 +310,7 @@ void AlexaInterface::initAlexaQMLClient()
         // If avs-device-sdk is built without keyword support, kwdModelPath remains empty
         QString kwdModelPath;
 
-#if KWD
+#ifdef KWD
         if (!qEnvironmentVariableIsSet("ALEXA_KWD_MODEL_PATH")) {
             qCritical() << "ALEXA_KWD_MODEL_PATH not defined";
             return;
@@ -329,7 +330,7 @@ void AlexaInterface::initAlexaQMLClient()
                     kwdModelPath.toStdString(),
                     m_logLevelString.toStdString())) {
             qCritical() << "Failed to initialize AlexaInterface.";
-#if KWD
+#ifdef KWD
             qDebug() << "ALEXA_KWD_MODEL_PATH: " << qEnvironmentVariable("ALEXA_KWD_MODEL_PATH");
 #endif
             qDebug() << "ALEXA_SDK_CONFIG_FILE: " << qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE");
@@ -903,9 +904,15 @@ bool AlexaInterface::initialize(
                 holdCanOverride,
                 holdCanBeOverridden);
 
-
-    std::shared_ptr<QtMicrophoneWrapper> micWrapper = QtMicrophoneWrapper::create(sharedDataStream);
-    if (!micWrapper) {
+    /*
+     * Read device name to change system default microphone input
+     */
+    QSettings settings(QStringLiteral("Luxoft Sweden AB"), QStringLiteral("AlexaApp"));
+    QString captureDeviceName = settings.value(QStringLiteral("capture/device_name"),
+                                               QStringLiteral("default")).toString();
+    std::shared_ptr<QtMicrophoneWrapper> m_micWrapper = QtMicrophoneWrapper::create(sharedDataStream,
+                                                                                  captureDeviceName);
+    if (!m_micWrapper) {
         ACSDK_CRITICAL(LX("Failed to create QtMicrophoneWrapper!"));
         return false;
     }
@@ -954,7 +961,7 @@ bool AlexaInterface::initialize(
     m_interactionManager = std::make_shared<InteractionManager>(
                 this,
                 client,
-                micWrapper,
+                m_micWrapper,
                 m_userInterfaceManager,
                 holdToTalkAudioProvider,
                 tapToTalkAudioProvider,
@@ -966,7 +973,7 @@ bool AlexaInterface::initialize(
 #else
     // If wake word is not enabled, then creating the interaction manager without a wake word audio provider.
     m_interactionManager = std::make_shared<InteractionManager>(
-                this, client, micWrapper, m_userInterfaceManager, holdToTalkAudioProvider, tapToTalkAudioProvider, m_guiRenderer);
+                this, client, m_micWrapper, m_userInterfaceManager, holdToTalkAudioProvider, tapToTalkAudioProvider, m_guiRenderer);
 #endif
 
     client->addAlexaDialogStateObserver(m_interactionManager);
