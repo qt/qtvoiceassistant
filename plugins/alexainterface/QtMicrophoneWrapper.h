@@ -40,6 +40,48 @@
 
 using namespace alexaClientSDK;
 
+/**
+ * @brief The AudioLevelInfo class
+ *
+ * provides processBuffer() function to get avg audio level from QByteArray data
+ * should be initialized with QAudioFormat in constructor or by init() function
+ *
+ */
+class AudioLevelInfo
+{
+public:
+    explicit AudioLevelInfo(const QAudioFormat &format);
+    AudioLevelInfo() {}
+    bool init(const QAudioFormat &format);
+
+    qreal processBuffer(const QByteArray &ba) const;
+private:
+    bool m_valid = false;
+
+    /// format-specific for processing speed-up
+    quint32 m_maxAmplitude = 0;
+    int m_sampleBytes = 0;
+    int m_channelBytes = 0;
+    int m_channelCount = 0;
+
+    /// pointer to static member function chosen for format
+    quint32 (*m_getAudioLevelValue)(const char *) = &AudioLevelInfo::processDefault;
+
+    /// buffer process functions
+    static quint32 processUnSignedInt8(const char *ptr);
+    static quint32 processSignedInt8(const char *ptr);
+    static quint32 processUnSignedInt16LE(const char *ptr);
+    static quint32 processUnSignedInt16BE(const char *ptr);
+    static quint32 processSignedInt16LE(const char *ptr);
+    static quint32 processSignedInt16BE(const char *ptr);
+    static quint32 processUnSignedInt32LE(const char *ptr);
+    static quint32 processUnSignedInt32BE(const char *ptr);
+    static quint32 processSignedInt32LE(const char *ptr);
+    static quint32 processSignedInt32BE(const char *ptr);
+    static quint32 processFloat(const char *ptr);
+    static quint32 processDefault(const char *ptr);
+};
+
 class QtMicrophoneWrapper
       : public QObject
       , public applicationUtilities::resources::audio::MicrophoneInterface {
@@ -70,6 +112,12 @@ public:
 
     virtual ~QtMicrophoneWrapper() override;
 
+    qreal audioLevel() const { return m_audioLevel; }
+    void setLevelProcess(bool enable) { m_levelProcess = enable; }
+
+Q_SIGNALS:
+    void audioLevelChanged();
+
 private:
     /**
      * Constructor.
@@ -77,11 +125,14 @@ private:
      */
     QtMicrophoneWrapper(std::shared_ptr<avsCommon::avs::AudioInputStream> stream);
 
-    QAudioDeviceInfo m_audioInfo;
     QAudioInput *m_audioInput = nullptr;
     QIODevice *m_audioInputIODevice = nullptr;
     int m_readAudioDataBytes = 0;
     QByteArray m_readAudioData;
+    qreal m_audioLevel = 0.0; // 0.0 <= m_audioLevel <= 1.0
+    bool m_levelProcess = false;
+    AudioLevelInfo m_audioLevelInfo;
+
 
     /// Initializes Audio
     bool initialize(const QString &deviceName);

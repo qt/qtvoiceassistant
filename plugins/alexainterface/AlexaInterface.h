@@ -87,6 +87,7 @@ class AlexaInterface: public QObject {
     Q_PROPERTY(QString authCode READ authCode NOTIFY authCodeChanged)
     Q_PROPERTY(ConnectionManager::ConnectionStatus connectionStatus READ connectionStatus NOTIFY connectionStatusChanged)
     Q_PROPERTY(LogLevel logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
+    Q_PROPERTY(qreal audioLevel READ audioLevel NOTIFY audioLevelChanged)
 
 public:
 
@@ -117,6 +118,7 @@ public:
     QString authCode() const { return m_authCode; }
     ConnectionManager::ConnectionStatus connectionStatus() const { return m_connectionStatus; }
     LogLevel logLevel() const { return m_logLevel; }
+    qreal audioLevel() const { return m_micWrapper ? m_micWrapper->audioLevel() : 0.0; }
 
     explicit AlexaInterface(QObject* parent = nullptr);
     /// Destructor which manages the @c AlexaInterface shutdown sequence.
@@ -213,6 +215,7 @@ Q_SIGNALS:
     void connectionStatusChanged();
     void logLevelChanged();
     void cardReady(BaseCard *card);
+    void audioLevelChanged();
 
 private:
     static std::unique_ptr<AlexaInterface> instance;

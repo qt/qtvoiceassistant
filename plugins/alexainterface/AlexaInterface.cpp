@@ -910,12 +910,18 @@ bool AlexaInterface::initialize(
     QSettings settings(QStringLiteral("Luxoft Sweden AB"), QStringLiteral("AlexaApp"));
     QString captureDeviceName = settings.value(QStringLiteral("capture/device_name"),
                                                QStringLiteral("default")).toString();
-    std::shared_ptr<QtMicrophoneWrapper> m_micWrapper = QtMicrophoneWrapper::create(sharedDataStream,
+    m_micWrapper = QtMicrophoneWrapper::create(sharedDataStream,
                                                                                   captureDeviceName);
     if (!m_micWrapper) {
         ACSDK_CRITICAL(LX("Failed to create QtMicrophoneWrapper!"));
         return false;
     }
+
+    // Turn on/off audio level processing, might be CPU consuming
+    bool processAudioLevel = settings.value(QStringLiteral("capture/process_input"), true).toBool();
+    m_micWrapper->setLevelProcess(processAudioLevel);
+    QObject::connect(m_micWrapper.get(), &QtMicrophoneWrapper::audioLevelChanged, this, &AlexaInterface::audioLevelChanged);
+
 
     // Creating wake word audio provider, if necessary
 #ifdef KWD
