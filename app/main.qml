@@ -35,6 +35,7 @@ import QtQuick 2.10
 import QtQuick.Window 2.10
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
+import QtGraphicalEffects 1.0
 
 import alexaauth 1.0
 import alexainterface 1.0
@@ -115,6 +116,86 @@ ApplicationCCWindow {
                 anchors.fill: parent
                 alexaAuth: alexaAuth
                 visible: AlexaInterface.authState !== Alexa.Refreshed
+            }
+        }
+    }
+
+    property NeptuneWindow statusBar: NeptuneWindow {
+        width: Sizes.dp(Config.statusBarHeight)
+        height: Sizes.dp(Config.statusBarHeight)
+        Component.onCompleted: {
+            setWindowProperty("windowType", "statusbar")
+        }
+        Item {
+            id: interactionPane
+            anchors.fill: parent
+            anchors.margins: parent.width * 0.2
+            Rectangle {
+                width: interactionButton.width * ( 1.0 + 0.3 * AlexaInterface.audioLevel )
+                height: width
+                anchors.centerIn: interactionButton
+                radius: width / 2
+                color: Style.accentColor
+            }
+            RoundButton {
+                id: interactionButton
+                visible: opacity > 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: height
+                height: parent.height
+                background: Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: AlexaInterface.connectionStatus === Alexa.Connected ?
+                                    "#00caff" :
+                                    "lightgrey";
+                }
+
+                icon.height: interactionButton.height/2
+                icon.width: interactionButton.width/2
+                icon.source: {
+                    if (AlexaInterface.dialogState === Alexa.Speaking) {
+                        return Qt.resolvedUrl("assets/ic_speaking.png")
+                    } else if (AlexaInterface.dialogState === Alexa.Thinking) {
+                        return Qt.resolvedUrl("assets/ic_thinking.png")
+                    } else {
+                        return Qt.resolvedUrl("assets/ic_microphone.png")
+                    }
+                }
+                enabled: AlexaInterface.connectionStatus === Alexa.Connected
+                onClicked: {
+                    var dialogState = AlexaInterface.dialogState;
+
+                    if (dialogState === Alexa.Idle) {
+                        AlexaInterface.tapToTalk()
+                    } else if ( (dialogState === Alexa.Listening)
+                               || (dialogState === Alexa.Speaking) ) {
+                        AlexaInterface.stopTalking();
+                    }
+                }
+                Image {
+                    id: busyIndicator
+                    anchors.centerIn: parent
+                    width: parent.width * 1.075
+                    height: parent.height * 1.075
+                    source: "assets/spinner.png"
+                    visible: false
+                }
+                ColorOverlay {
+                    id: overlay
+                    anchors.fill: busyIndicator
+                    source: busyIndicator
+                    color: "#0071ff"
+                    visible: (AlexaInterface.dialogState === Alexa.Listening)
+                             || (AlexaInterface.dialogState === Alexa.Thinking)
+                    RotationAnimation on rotation {
+                        loops: Animation.Infinite
+                        from: 0
+                        to: 360
+                        duration: 2000
+                        running: overlay.visible
+                    }
+                }
             }
         }
     }
