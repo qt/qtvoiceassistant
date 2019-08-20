@@ -245,11 +245,18 @@ Control {
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height
+            Rectangle {
+                width: interactionButton.width * ( 1.0 + 0.3 * alexaInterface.audioLevel )
+                height: width
+                anchors.centerIn: interactionButton
+                radius: width / 2
+                color: Style.accentColor
+            }
             DropShadow {
                 anchors.fill: interactionButton
                 horizontalOffset: Sizes.dp(3)
                 verticalOffset: Sizes.dp(3)
-                radius: 8.0
+                radius: Sizes.dp(8.0)
                 samples: 17
                 color: "#80000000"
                 source: interactionButton.background
