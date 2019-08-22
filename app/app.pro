@@ -11,7 +11,8 @@ FILES += info.yaml \
          BasicCard.qml \
          Footer.qml \
          WeatherCard.qml \
-         InfoCard.qml
+         InfoCard.qml \
+         MainView.qml
 
 app.files = $$FILES
 app.path = /apps/com.luxoft.alexa

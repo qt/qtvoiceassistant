@@ -33,17 +33,10 @@ import application.windows 1.0
 
 import QtQuick 2.10
 import QtQuick.Window 2.10
-import QtQuick.Controls 2.3
-import QtQuick.Layouts 1.3
-import QtGraphicalEffects 1.0
-
-import alexaauth 1.0
-import alexainterface 1.0
+import QtQuick.Controls 2.5
 
 import shared.Sizes 1.0
 import shared.Style 1.0
-import shared.controls 1.0
-import shared.utils 1.0
 
 ApplicationCCWindow {
     id: root
@@ -62,141 +55,33 @@ ApplicationCCWindow {
         visible: opacity > 0
     }
 
-    Item {
-        id: mainWindow
-        x: root.exposedRect.x
-        y: root.exposedRect.y
+    Label {
+        id: alexaLoadErrorText
+        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: Sizes.fontSizeM
+        font.weight: Font.Medium
+        horizontalAlignment: Text.AlignHCenter
         width: root.exposedRect.width
-        height: root.exposedRect.height
-
-        AlexaAuth {
-            id: alexaAuth
-            httpUserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36"
-        }
-
-        Connections {
-            target: AlexaInterface
-            onAuthCodeChanged: {
-                if (authCode !== "") {
-                    alexaAuth.authCode = authCode
-                }
-            }
-            onAuthUrlChanged: {
-                alexaAuth.authUrl = authUrl
-            }
-            Component.onCompleted: {
-                AlexaInterface.logLevel = Alexa.Debug9
-            }
-        }
-
-        Header {
-            anchors.top: parent.top
-            anchors.topMargin: Sizes.dp(80)
-            anchors.horizontalCenter: parent.horizontalCenter
-            unfoldHeader: alexaView.visible || authView.visible
-            visible: root.neptuneState === "Maximized"
-        }
-
-        Item {
-            id: paneMainView
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: parent.height - Sizes.dp(50)
-
-            AlexaView {
-                id: alexaView
-                anchors.fill: parent
-                visible: AlexaInterface.authState === Alexa.Refreshed
-                neptuneState: root.neptuneState
-            }
-
-            AuthView {
-                id: authView
-                anchors.fill: parent
-                alexaAuth: alexaAuth
-                visible: AlexaInterface.authState !== Alexa.Refreshed
-            }
-        }
+        opacity: Style.opacityHigh
+        text: qsTr("Please make sure that the Alexa SDK is installed correctly")
+        visible: false
     }
 
-    property NeptuneWindow statusBar: NeptuneWindow {
-        width: Sizes.dp(Config.statusBarHeight)
-        height: Sizes.dp(Config.statusBarHeight)
-        Component.onCompleted: {
-            setWindowProperty("windowType", "statusbar")
+    Loader {
+        source: "MainView.qml"
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                alexaLoadErrorText.visible = true
+            }
         }
-        Item {
-            id: interactionPane
-            anchors.fill: parent
-            anchors.margins: parent.width * 0.2
-            Rectangle {
-                width: interactionButton.width * ( 1.0 + 0.3 * AlexaInterface.audioLevel )
-                height: width
-                anchors.centerIn: interactionButton
-                radius: width / 2
-                color: Style.accentColor
-            }
-            RoundButton {
-                id: interactionButton
-                visible: opacity > 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: height
-                height: parent.height
-                background: Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: AlexaInterface.connectionStatus === Alexa.Connected ?
-                                    "#00caff" :
-                                    "lightgrey";
-                }
-
-                icon.height: interactionButton.height/2
-                icon.width: interactionButton.width/2
-                icon.source: {
-                    if (AlexaInterface.dialogState === Alexa.Speaking) {
-                        return Qt.resolvedUrl("assets/ic_speaking.png")
-                    } else if (AlexaInterface.dialogState === Alexa.Thinking) {
-                        return Qt.resolvedUrl("assets/ic_thinking.png")
-                    } else {
-                        return Qt.resolvedUrl("assets/ic_microphone.png")
-                    }
-                }
-                enabled: AlexaInterface.connectionStatus === Alexa.Connected
-                onClicked: {
-                    var dialogState = AlexaInterface.dialogState;
-
-                    if (dialogState === Alexa.Idle) {
-                        AlexaInterface.tapToTalk()
-                    } else if ( (dialogState === Alexa.Listening)
-                               || (dialogState === Alexa.Speaking) ) {
-                        AlexaInterface.stopTalking();
-                    }
-                }
-                Image {
-                    id: busyIndicator
-                    anchors.centerIn: parent
-                    width: parent.width * 1.075
-                    height: parent.height * 1.075
-                    source: "assets/spinner.png"
-                    visible: false
-                }
-                ColorOverlay {
-                    id: overlay
-                    anchors.fill: busyIndicator
-                    source: busyIndicator
-                    color: "#0071ff"
-                    visible: (AlexaInterface.dialogState === Alexa.Listening)
-                             || (AlexaInterface.dialogState === Alexa.Thinking)
-                    RotationAnimation on rotation {
-                        loops: Animation.Infinite
-                        from: 0
-                        to: 360
-                        duration: 2000
-                        running: overlay.visible
-                    }
-                }
-            }
+        onLoaded: {
+            alexaLoadErrorText.visible = false
+            item.x = Qt.binding(function() { return root.exposedRect.x; })
+            item.y = Qt.binding(function() { return root.exposedRect.y; })
+            item.width = Qt.binding(function() { return root.exposedRect.width; })
+            item.height = Qt.binding(function() { return root.exposedRect.height; })
+            item.neptuneState = Qt.binding(function() { return root.neptuneState; })
+            item.visible = Qt.binding(function() { return root.exposedRect.height > 0; })
         }
     }
 }
