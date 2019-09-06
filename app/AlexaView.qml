@@ -65,16 +65,17 @@ Control {
                 target: interactionButton
                 height: Sizes.dp(120)
                 anchors.horizontalCenterOffset: -root.width/2 + interactionButton.width / 2 + Sizes.dp(50)
-                anchors.topMargin: Sizes.dp(550) - interactionButton.height / 2
+                anchors.topMargin: Sizes.dp(100) - interactionButton.height / 2
             }
             PropertyChanges {
                 target: stopSpeakingButton
                 anchors.horizontalCenterOffset: root.width/2 - stopSpeakingButton.width / 2 - Sizes.dp(50)
-                anchors.topMargin: Sizes.dp(550) - stopSpeakingButton.height / 2
+                anchors.topMargin: Sizes.dp(100) - stopSpeakingButton.height / 2
             }
             PropertyChanges {
                 target: cardPane
-                height: root.height / 2
+                anchors.topMargin: interactionButton.height * 1.5
+                height: root.height  - cardPane.anchors.topMargin
                 opacity: 1
             }
             PropertyChanges {
@@ -265,7 +266,7 @@ Control {
                 visible: opacity > 0
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: Sizes.dp(600)
+                anchors.topMargin: Sizes.dp(300)
                 width: height
                 height: parent.height/2 > Sizes.dp(270) ? Sizes.dp(270) : parent.height/2
                 background: Rectangle {
@@ -319,7 +320,7 @@ Control {
                 id: stopSpeakingButton
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: Sizes.dp(600) + interactionButton.height + Sizes.dp(100)
+                anchors.topMargin: interactionButton.anchors.topMargin + interactionButton.height + Sizes.dp(100)
                 width: parent.width > Sizes.dp(270) ? Sizes.dp(270) : parent.width
                 height: Sizes.dp(70)
                 opacity: (AlexaInterface.dialogState === Alexa.Listening) || (AlexaInterface.dialogState === Alexa.Speaking) ? 1 : 0
@@ -338,7 +339,6 @@ Control {
         Item {
             id: cardPane
             anchors.top: parent.top
-            anchors.topMargin: Sizes.dp(650)
             anchors.left: parent.left
             anchors.right: parent.right
             height: 0

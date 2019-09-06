@@ -32,11 +32,10 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.5
 import QtGraphicalEffects 1.0
-
+import QtQuick.Layouts 1.13
 import QtWebView 1.1
 
 import alexainterface 1.0
-import alexaauth 1.0
 
 import shared.utils 1.0
 import shared.controls 1.0
@@ -49,52 +48,41 @@ Control {
     property var alexaAuth
     property bool authorizationRequested: false
 
-    Item {
+    ColumnLayout {
         id: initStateView
         anchors.top: parent.top
-        anchors.topMargin: Sizes.dp(500)
-        width: 0.5 * root.width
+        anchors.topMargin: Sizes.dp(200)
+        width: 0.4 * root.width
         anchors.horizontalCenter: parent.horizontalCenter
         opacity: 0
         visible: opacity > 0
+        spacing: Sizes.dp(25)
 
-        DropShadow {
-            anchors.fill: emailField
-            horizontalOffset: Sizes.dp(1)
-            verticalOffset: Sizes.dp(2)
-            radius: 6
-            color: "#80000000"
-            source: emailField.background
+        Label {
+            id: loginLabel
+            text: qsTr("Amazon account:")
+            width: parent.width
+            font.pixelSize: Sizes.fontSizeM
+            Layout.alignment: Qt.AlignHCenter
         }
 
         TextField {
             id: emailField
-            width: parent.width
-            height: Sizes.dp(54)
             color: "gray"
             font.pixelSize: Sizes.fontSizeS
             placeholderText: "email"
+            inputMethodHints: Qt.ImhEmailCharactersOnly
             background: Rectangle {
                 anchors.fill: parent
-                radius: 4
+                radius: Sizes.dp(4)
             }
-        }
-
-        DropShadow {
-            anchors.fill: passwordField
-            horizontalOffset: Sizes.dp(1)
-            verticalOffset: Sizes.dp(2)
-            radius: 6
-            color: "#80000000"
-            source: passwordField.background
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
         }
 
         TextField {
             id: passwordField
-            width: parent.width
             height: Sizes.dp(54)
-            anchors.top: emailField.bottom
-            anchors.topMargin: Sizes.dp(25)
             color: "gray"
             font.pixelSize: Sizes.fontSizeS
             placeholderText: "password"
@@ -102,154 +90,159 @@ Control {
             passwordCharacter: '*'
             background: Rectangle {
                 anchors.fill: parent
-                radius: 4
+                radius: Sizes.dp(4)
             }
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
         }
     }
 
-    Item {
+    ColumnLayout {
+        id: captchaView
+        anchors.top: parent.top
+        anchors.topMargin: Sizes.dp(200)
+        width: 0.5 * root.width
+        anchors.horizontalCenter: parent.horizontalCenter
+        opacity: 0
+        visible: opacity > 0
+        spacing: Sizes.dp(25)
+
+        Image {
+            id: captchaImage
+            width: Sizes.dp(sourceSize.width)
+            height: Sizes.dp(sourceSize.height)
+            source: alexaAuth.captchaUrl
+            onSourceChanged: {
+                captchaField.text = ""
+            }
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        TextField {
+            id: captchaField
+            width: parent.width
+            color: "gray"
+            text: ""
+            placeholderText: "Enter the characters you see"
+            font.pixelSize: Sizes.fontSizeS
+            background: Rectangle {
+                anchors.fill: parent
+                radius: Sizes.dp(4)
+            }
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+        }
+    }
+
+    ColumnLayout {
         id: manualAuthorization
         anchors.horizontalCenter: parent.horizontalCenter
         width: 0.65 * parent.width
         opacity: 0
         visible: opacity > 0
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        spacing: Sizes.dp(15)
 
         Label {
             id: authCode
-            anchors.bottom: webView.top
-            anchors.horizontalCenter: webView.horizontalCenter
-            height: Sizes.dp(60)
-            verticalAlignment: Text.AlignVCenter
             font.pixelSize: Sizes.fontSizeM
             text: "Your code: " + AlexaInterface.authCode
             visible: AlexaInterface.authCode !== ""
-        }
-
-        WebView {
-            id: webView
-            y: Sizes.dp(436) + Sizes.dp(100)
-            width: parent.width
-            height: Sizes.dp(700)
-            anchors.horizontalCenter: parent.horizontalCenter
-            url: AlexaInterface.authUrl
-            visible: url !== ""
-        }
-
-        Label {
-            id: helpText
-            anchors.top: webView.bottom
-            anchors.topMargin: Sizes.dp(15)
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.Wrap
-            font.pixelSize: Sizes.fontSizeS
-            text: "Couldn't authorize automatically. Proceed by filling your email, password and authorization code in the web form."
-            visible: webView.url.toString() !== ""
+            Layout.alignment: Qt.AlignHCenter
         }
 
         Label {
             id: errorText
-            anchors.centerIn: parent
-            anchors.verticalCenterOffset: Sizes.dp(600)
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
             font.pixelSize: Sizes.fontSizeS
             text: "Cannot authorize due to invalid client id. Check the client id in the AlexaClientSDKConfig.json and restart the Alexa application"
             visible: webView.url.toString() === ""
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+        }
+
+        WebView {
+            id: webView
+            height: Sizes.dp(700)
+            url: AlexaInterface.authUrl
+            visible: url !== ""
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+        }
+
+        Label {
+            id: helpText
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            font.pixelSize: Sizes.fontSizeS
+            text: "Couldn't authorize automatically. Proceed by filling your email, password and authorization code in the web form."
+            visible: webView.url.toString() !== ""
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
         }
     }
 
-    // The item holds the same position than the interaction button in AlexaView
-    // The purpose is to prevent a jump when moved from AuthView to AlexaView
-    Item {
-        id: authButtonItem
+
+    Button {
+        id: authButton
+
+        implicitWidth: Sizes.dp(315)
+        implicitHeight: Sizes.dp(64)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: Sizes.dp(600)
-        height: parent.height/2 > Sizes.dp(270) ? Sizes.dp(270) : parent.height/2
-        width: height
+        anchors.topMargin: Sizes.dp(500)
         visible: opacity > 0
         opacity: 1
-
-        DropShadow {
-            anchors.fill: authButton
-            horizontalOffset: Sizes.dp(3)
-            verticalOffset: Sizes.dp(3)
-            radius: 8.0
-            samples: 17
-            color: "#80000000"
-            source: authButton.background
-        }
-
-        Button {
-            id: authButton
-            anchors.centerIn: parent
-            width: parent.width
-            height: Sizes.dp(70)
-            enabled: !alexaAuth.isAuthorizing && emailField.text !== "" && passwordField.text !== ""
-            text: "Authorize"
-            font.pixelSize: Sizes.fontSizeL
-            icon.color: enabled ? Style.contrastColor : "black"
-            background: ButtonBackground {
-                border.color: parent.enabled ? "#5FCAF4" : "lightgray"
-                color: parent.enabled ? "#5FCAF4" : "lightgray"
-
-            }
-            onClicked: {
-                alexaAuth.email = emailField.text
-                alexaAuth.password = passwordField.text
+        enabled: (!alexaAuth.isAuthorizing && emailField.text !== "" && passwordField.text !== "")
+                        || (alexaAuth.isFillingCaptcha && captchaField.text !== "")
+        text: qsTr("Authorize")
+        font.pixelSize: Sizes.fontSizeS
+        onClicked: {
+            alexaAuth.email = emailField.text
+            alexaAuth.password = passwordField.text
+            if (alexaAuth.isFillingCaptcha) {
+                alexaAuth.captcha = captchaField.text
+                alexaAuth.authorizeWithCaptcha()
+            } else {
                 alexaAuth.authorize()
-                root.authorizationRequested = true
             }
+            root.authorizationRequested = true
         }
     }
 
-    Row {
-        anchors.top: authButtonItem.bottom
-        anchors.topMargin: Sizes.dp(40)
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: Sizes.dp(20)
+    ColumnLayout {
+        anchors.top: parent.top
+        width: parent.width
 
-        Item {
-            id: spinner
-            width: Sizes.dp(50)
-            height: width
-            anchors.verticalCenter: parent.verticalCenter
+        ProgressBar {
+            id: progress
+            width: parent.width
+            implicitHeight: Sizes.dp(8)
             opacity: 0
             visible: opacity > 0
-
-            Image {
-                id: spinnerImage
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                source: "assets/spinner.png"
-            }
-
-            ColorOverlay {
-                id: overlay
-                anchors.fill: spinnerImage
-                source: spinnerImage
-                color: "#63abc8"
-                visible: spinnerImage.opacity > 0
-                RotationAnimation on rotation {
-                    loops: Animation.Infinite
-                    from: 0
-                    to: 360
-                    duration: 1000
-                    running: overlay.visible
-                }
+            from: 0
+            to: 1
+            value: 0
+            indeterminate: true
+            Layout.fillWidth: true
+            SequentialAnimation on value {
+                loops: Animation.Infinite
+                PropertyAnimation { to: 0; duration: 1500 }
+                PropertyAnimation { to: 1; duration: 1500 }
             }
         }
 
         Label {
             id: authAppText
-            anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("Authorizing application...")
+            text: qsTr("Authorizing device...")
             font.pixelSize: Sizes.fontSizeL
             opacity: 0
             visible: opacity > 0
+            Layout.topMargin: Sizes.dp(400)
+            Layout.alignment: Qt.AlignHCenter
         }
     }
 
@@ -259,25 +252,35 @@ Control {
             PropertyChanges { target: initStateView; opacity: 1 }
         },
         State {
+            name: "captcha"
+            PropertyChanges { target: captchaView; opacity: 1; anchors.top: initStateView.bottom;
+                                                    anchors.topMargin: Sizes.dp(25) }
+            PropertyChanges { target: initStateView; opacity: 1 }
+            PropertyChanges { target: progress; opacity: 0 }
+            PropertyChanges { target: authAppText; opacity: 0 }
+            PropertyChanges { target: authButton; opacity: 1; anchors.top: captchaView.bottom;
+                                                  anchors.topMargin: Sizes.dp(25) }
+        },
+        State {
             name: "automatic_auth"
             PropertyChanges { target: initStateView; opacity: 0 }
             PropertyChanges { target: authAppText; opacity: 0.8 }
-            PropertyChanges { target: spinner; opacity: 1 }
+            PropertyChanges { target: progress; opacity: 1 }
         },
         State {
             name: "manual_auth"
             PropertyChanges { target: initStateView; opacity: 0 }
             PropertyChanges { target: manualAuthorization; opacity: 1 }
-            PropertyChanges { target: spinner; opacity: 0 }
-            PropertyChanges { target: authButtonItem; opacity: 0 }
+            PropertyChanges { target: progress; opacity: 0 }
+            PropertyChanges { target: authButton; opacity: 0 }
             PropertyChanges { target: authAppText; opacity: 0 }
         },
         State {
             name: "complete_auth"
             PropertyChanges { target: manualAuthorization; opacity: 0 }
             PropertyChanges { target: authAppText; opacity: 0.8; text: "Authorization completed" }
-            PropertyChanges { target: spinner; opacity: 0 }
-            PropertyChanges { target: authButtonItem; opacity: 0 }
+            PropertyChanges { target: progress; opacity: 0 }
+            PropertyChanges { target: authButton; opacity: 0 }
         }
     ]
 
@@ -286,7 +289,11 @@ Control {
             if (!root.authorizationRequested) {
                 return "initial_state"
             } else if (alexaAuth.isAuthorizing) {
-                return "automatic_auth"
+                if (alexaAuth.isFillingCaptcha) {
+                    return "captcha"
+                } else {
+                    return "automatic_auth"
+                }
             } else {
                 return "manual_auth"
             }

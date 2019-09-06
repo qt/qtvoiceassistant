@@ -50,20 +50,24 @@ Item {
 
     property string neptuneState: "Maximized"
 
-    AlexaAuth {
+    AuthWebPageInteraction {
         id: alexaAuth
-        httpUserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36"
+        onErrorChanged: {
+            if (error === AlexaAuth.AutomaticAuthFailed){
+                authView.state = "manual_auth"
+            }
+        }
     }
 
     Connections {
         target: AlexaInterface
         onAuthCodeChanged: {
-            if (authCode !== "") {
-                alexaAuth.authCode = authCode
+            if (AlexaInterface.authCode !== "") {
+                alexaAuth.authCode = AlexaInterface.authCode
             }
         }
         onAuthUrlChanged: {
-            alexaAuth.authUrl = authUrl
+            alexaAuth.authUrl = AlexaInterface.authUrl
         }
         Component.onCompleted: {
             AlexaInterface.logLevel = Alexa.Debug9
@@ -71,8 +75,11 @@ Item {
     }
 
     Header {
+        id: header
         anchors.top: parent.top
         anchors.topMargin: Sizes.dp(80)
+        width: parent.width
+        height: Sizes.dp(356)
         anchors.horizontalCenter: parent.horizontalCenter
         unfoldHeader: alexaView.visible || authView.visible
         visible: root.neptuneState === "Maximized"
@@ -80,10 +87,11 @@ Item {
 
     Item {
         id: paneMainView
-        anchors.top: parent.top
+        anchors.top: header.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        height: parent.height - Sizes.dp(50)
+        // to not overlap content with on-top widget
+        height: parent.height - (header.y + header.height)
 
         AlexaView {
             id: alexaView

@@ -35,9 +35,8 @@
 #include <QObject>
 #include <QTimer>
 #include <QUrl>
-#ifdef ALEXA_QT_WEBENGINE
-#include <QWebEnginePage>
-#include <QWebEngineProfile>
+#include <QQmlEngine>
+
 
 // ## Step 1, login to amazon.developer.com
 #define HTML_TITLE_FIRST "Amazon Sign-In"
@@ -47,9 +46,12 @@
 #define TAG_EMAIL_ID "ap_email"
 #define TAG_PASSWORD_ID "ap_password"
 #define TAG_SIGN_IN_SUBMIT_ID "signInSubmit"
+#define TAG_CAPTCHA_IMAGE_ID "auth-captcha-image"
+#define TAG_CAPTCHA_GUESS_ID "auth-captcha-guess"
 
 // ## Step 2, give authorization code
 #define HTML_TITLE_SECOND "Amazon Two-Step Verification"
+#define HTML_TITLE_ERROR_CAPTCHA "There was a problem"
 #define TAG_REGISTRATION_FIELD_ID "cbl-registration-field"
 #define TAG_CONTINUE_BUTTON_ID "cbl-continue-button"
 
@@ -57,25 +59,14 @@
 #define HTML_REGISTER_DEVICE "Register Your Device"
 #define HTML_SUCCESS "Success!"
 #define TAG_SUCCESS_TITLE_ID "cbl-page-title"
-#endif
 
 class AlexaAuth : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool isAuthorizing READ isAuthorizing NOTIFY isAuthorizingChanged)
-    Q_PROPERTY(QString authCode READ authCode WRITE setAuthCode NOTIFY authCodeChanged)
-    Q_PROPERTY(QUrl authUrl READ authUrl WRITE setAuthUrl NOTIFY authUrlChanged)
-    Q_PROPERTY(ErrorState error READ error NOTIFY errorChanged)
-    Q_PROPERTY(QString httpUserAgent READ httpUserAgent WRITE setHttpUserAgent NOTIFY httpUserAgentChanged)
-    Q_PROPERTY(bool authorizationSucceed READ authorizationSucceed NOTIFY authorizationSucceedChanged)
-    Q_PROPERTY(QString email READ email WRITE setEmail NOTIFY emailChanged)
-    Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
-
 public:
-
     enum ErrorState {
-        None,
+        NoError,
         WebEngineNotAvailable,
         ConfigFileFailure,
         HtmlItemNotFound,
@@ -84,64 +75,61 @@ public:
     };
     Q_ENUM(ErrorState)
 
+    enum AuthStage {
+        AuthSignIn,
+        AuthRegisterDevice,
+        AuthError
+    };
+    Q_ENUM(AuthStage)
+
+    enum SignInResult {
+        SignInInputEmail,
+        SignInCaptcha,
+        SignInError
+    };
+    Q_ENUM(SignInResult)
+
+    enum RegisterDeviceResult {
+        RegisterDevice,
+        RegisterDeviceSuccess,
+        RegisterDeviceError
+    };
+    Q_ENUM(RegisterDeviceResult)
+
+    enum JSAuthString {
+        SignIn,
+        CaptchaSrc,
+        GetCaptchaInput,
+        SetCaptcha,
+        GetEmailInput,
+        SetEmail,
+        GetPasswordInput,
+        SetPassword,
+        GetClickSignIn,
+        RegisterDeviceTitle,
+        GetInputCode,
+        SetInputCode,
+        GetContinue,
+        ClickElement
+    };
+    Q_ENUM(JSAuthString)
+
     explicit AlexaAuth(QObject *parent = nullptr);
 
-    Q_INVOKABLE void authorize();
-
-    bool isAuthorizing() const { return m_isAuthorizing; }
-    QString authCode() const { return m_authCode; }
-    QUrl authUrl() const { return m_authUrl; }
-    ErrorState error() const { return m_error; }
-    QString httpUserAgent() const { return m_httpUserAgent; }
-    bool authorizationSucceed() const { return m_authorizationSucceed; }
-    QString email() const { return m_email; }
-    QString password() const { return m_password; }
-
-    void setIsAuthorizing(bool isAuthorizing);
-    void setAuthCode(QString authCode);
-    void setAuthUrl(QUrl authUrl);
-    void setError(AlexaAuth::ErrorState error);
-    void setHttpUserAgent(QString httpUserAgent);
-    void setAuthorizationSucceed(bool authorizationSucceed);
-    void setEmail(QString email);
-    void setPassword(QString password);
-
-
-signals:
-    void isAuthorizingChanged(bool isAuthorizing);
-    void authCodeChanged(QString authCode);
-    void authUrlChanged(QUrl authUrl);
-    void errorChanged(AlexaAuth::ErrorState error);
-    void httpUserAgentChanged(QString httpUserAgent);
-    void authorizationSucceedChanged(bool authorizationSucceed);
-    void emailChanged(QString email);
-    void passwordChanged(QString password);
-
-public slots:
-
-
-private:
-#ifdef ALEXA_QT_WEBENGINE
-    bool parseJson();
-    void authPageLoaded(bool ok);
-    void signinToAmazon();
-    void inputEMail();
-    void inputPassword();
-    void clickSignIn();
-    void registerDevice();
-    void inputCode();
-    void clickContinue();
-
-    QWebEnginePage m_authPage;
-#endif
-    QString m_authCode;
-    bool m_isAuthorizing = false;
-    QUrl m_authUrl;
-    ErrorState m_error = ErrorState::None;
-    QString m_httpUserAgent;
-    bool m_authorizationSucceed = false;
-    QString m_email;
-    QString m_password;
+    Q_INVOKABLE bool parseJson() const;
+    Q_INVOKABLE AlexaAuth::AuthStage getAuthStage(const QString &title);
+    Q_INVOKABLE QString getJSString(AlexaAuth::JSAuthString id, const QString &value = "") const;
+    Q_INVOKABLE AlexaAuth::SignInResult signinToAmazonResult(const QVariant &cb);
+    Q_INVOKABLE AlexaAuth::RegisterDeviceResult registerDeviceResult(const QVariant &cb);
 };
+
+static QObject *alexaAuthSingletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    AlexaAuth *singletonObject = new AlexaAuth();
+    return singletonObject;
+}
 
 #endif // ALEXAAUTH_H

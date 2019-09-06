@@ -36,6 +36,6 @@
 
 void AlexaAuthPlugin::registerTypes(const char *uri)
 {
-    qmlRegisterType<AlexaAuth>(uri, 1, 0, "AlexaAuth");
+    qmlRegisterSingletonType<AlexaAuth>(uri, 1, 0, "AlexaAuth", alexaAuthSingletonProvider);
 }
 

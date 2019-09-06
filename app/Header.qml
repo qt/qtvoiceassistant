@@ -45,20 +45,17 @@ Control {
         property int headerTextIndex: 0
     }
 
-    width: parent.width
-    height: Sizes.dp(100)
-
     contentItem: Item {
         Row {
             id: animatedTextRow
             anchors.centerIn: parent
-            anchors.verticalCenterOffset: Sizes.dp(200)
+            anchors.verticalCenterOffset: Sizes.dp(50)
             spacing: Sizes.dp(35)
             Image {
                 id: alexaLogo
                 anchors.verticalCenter: parent.verticalCenter
                 fillMode: Image.PreserveAspectFit
-                height: root.height*0.7
+                height: root.height*0.25
                 source: "assets/logo.png"
             }
             Label {

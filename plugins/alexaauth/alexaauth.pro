@@ -1,20 +1,6 @@
 TEMPLATE = lib
 TARGET = alexaauth
-QT += qml quick
-
-# Is Qt Application manager compiled with 'enable-widgets' configuration.
-# Do not change without recompiling the Qt Application Manger.
-QAPPMAN_ENABLES_WIDGETS = 0
-
-equals(QAPPMAN_ENABLES_WIDGETS, 1) {
-    qtHaveModule(webenginewidgets) {
-        QT += webenginewidgets
-        DEFINES += ALEXA_QT_WEBENGINE
-    }
-    else {
-        message("Qt module webenginewidgets is not available.")
-    }
-}
+QT += qml quick webengine
 
 CONFIG += plugin c++14
 

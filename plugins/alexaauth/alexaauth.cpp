@@ -31,129 +31,71 @@
 
 #include "alexaauth.h"
 
-#ifdef ALEXA_QT_WEBENGINE
-#include <QWebEngineCookieStore>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QJsonParseError>
-#endif
 #include <QDebug>
 #include <QFile>
+#include <QtWebEngine/QtWebEngine>
+#include <QQuickWebEngineProfile>
 
 AlexaAuth::AlexaAuth(QObject *parent) : QObject(parent)
 {
-#ifdef ALEXA_QT_WEBENGINE
-    m_authPage.profile()->clearHttpCache();
-    m_authPage.profile()->cookieStore()->deleteAllCookies();
-    m_authPage.profile()->setHttpAcceptLanguage("en-US,en;q=0.9");
-    m_httpUserAgent = m_authPage.profile()->httpUserAgent();
-    m_error = ErrorState::None;
-#else
-    qDebug() << "QWebEngine not available, cannot authorize automatically.";
-    m_error = AlexaAuth::WebEngineNotAvailable;
-#endif
+    QtWebEngine::initialize();
+    QQuickWebEngineProfile::defaultProfile()->cookieStore()->deleteAllCookies();
 }
 
-void AlexaAuth::setIsAuthorizing(bool isAuthorizing)
+QString AlexaAuth::getJSString(AlexaAuth::JSAuthString id, const QString &value) const
 {
-    if (m_isAuthorizing == isAuthorizing)
-        return;
-
-    m_isAuthorizing = isAuthorizing;
-    emit isAuthorizingChanged(m_isAuthorizing);
-}
-
-void AlexaAuth::setAuthCode(QString authCode)
-{
-    qDebug() << Q_FUNC_INFO << " " << authCode;
-    if (m_authCode == authCode)
-        return;
-
-    m_authCode = authCode;
-    emit authCodeChanged(m_authCode);
-}
-
-void AlexaAuth::setAuthUrl(QUrl authUrl)
-{
-    qDebug() << Q_FUNC_INFO << " " << authUrl;
-    if (m_authUrl == authUrl)
-        return;
-
-    m_authUrl = authUrl;
-    emit authUrlChanged(m_authUrl);
-}
-
-void AlexaAuth::setError(AlexaAuth::ErrorState error)
-{
-    if (m_error == error)
-        return;
-
-    if (error != AlexaAuth::None) {
-        setIsAuthorizing(false);
+    QString result;
+    switch (id) {
+    case SignIn:
+        result = QString("document.getElementsByClassName('") + TAG_ALERT_HEADING_ID + "')[0].textContent";
+        break;
+    case CaptchaSrc:
+        result = QString("document.getElementById('") + TAG_CAPTCHA_IMAGE_ID +"').src";
+        break;
+    case GetCaptchaInput:
+        result = QString("document.getElementById('") + TAG_CAPTCHA_GUESS_ID + "')";
+        break;
+    case SetCaptcha:
+        result = QString("document.getElementById('") + TAG_CAPTCHA_GUESS_ID + "').value='" + value + "'";
+        break;
+    case GetEmailInput:
+        result = QString("document.getElementById('") + TAG_EMAIL_ID +"')";
+        break;
+    case SetEmail:
+        result = QString("document.getElementById('") + TAG_EMAIL_ID + "').value='" + value+ "'";
+        break;
+    case GetPasswordInput:
+        result = QString("document.getElementById('") + TAG_PASSWORD_ID +"')";
+        break;
+    case SetPassword:
+        result = QString("document.getElementById('") + TAG_PASSWORD_ID + "').value='" + value + "'";
+        break;
+    case GetClickSignIn:
+        result = QString("document.getElementById('") + TAG_SIGN_IN_SUBMIT_ID + "')";
+        break;
+    case RegisterDeviceTitle:
+        result = QString("document.getElementById('") + TAG_SUCCESS_TITLE_ID + "').textContent";
+        break;
+    case GetInputCode:
+        result = QString("document.getElementById('") + TAG_REGISTRATION_FIELD_ID + "')";
+        break;
+    case SetInputCode:
+        result = QString("document.getElementById('") + TAG_REGISTRATION_FIELD_ID + "').value='" + value + "'";
+        break;
+    case GetContinue:
+        result = QString("document.getElementById('") + TAG_CONTINUE_BUTTON_ID + "')";
+        break;
+    case ClickElement:
+        result = value + ".click()";
+        break;
     }
 
-    m_error = error;
-#ifdef ALEXA_QT_WEBENGINE
-    QObject::disconnect( &m_authPage, &QWebEnginePage::loadFinished, this, &AlexaAuth::authPageLoaded);
-#endif
-    emit errorChanged(m_error);
+    return result;
 }
 
-void AlexaAuth::setHttpUserAgent(QString httpUserAgent)
+bool AlexaAuth::parseJson() const
 {
-    qDebug() << Q_FUNC_INFO << httpUserAgent;
-    if (m_httpUserAgent == httpUserAgent)
-        return;
-
-    m_httpUserAgent = httpUserAgent;
-#ifdef ALEXA_QT_WEBENGINE
-    m_authPage.profile()->setHttpUserAgent(m_httpUserAgent);
-#endif
-    emit httpUserAgentChanged(m_httpUserAgent);
-}
-
-void AlexaAuth::setAuthorizationSucceed(bool authorizationSucceed)
-{
-    if (m_authorizationSucceed == authorizationSucceed)
-        return;
-
-    m_authorizationSucceed = authorizationSucceed;
-    emit authorizationSucceedChanged(m_authorizationSucceed);
-}
-
-void AlexaAuth::setEmail(QString email)
-{
-    if (m_email == email)
-        return;
-    m_email = email;
-    emit emailChanged(m_email);
-}
-
-void AlexaAuth::setPassword(QString password)
-{
-    if (m_password == password)
-        return;
-    m_password = password;
-    emit passwordChanged(m_password);
-}
-
-void AlexaAuth::authorize()
-{
-    qDebug() << Q_FUNC_INFO << " " << m_authUrl;
-#ifdef ALEXA_QT_WEBENGINE
-    if (parseJson()) {
-        QObject::connect( &m_authPage, &QWebEnginePage::loadFinished, this, &AlexaAuth::authPageLoaded);
-        setIsAuthorizing(true);
-        m_authPage.load(m_authUrl);
-    }
-#endif
-}
-
-#ifdef ALEXA_QT_WEBENGINE
-bool AlexaAuth::parseJson()
-{
-    qDebug() << Q_FUNC_INFO;
     if (qEnvironmentVariableIsSet("ALEXA_SDK_CONFIG_FILE")) {
         QFile file(qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE"));
         if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -167,9 +109,9 @@ bool AlexaAuth::parseJson()
                 line = in.readLine();
                 indx = line.indexOf("//");
                 if ( indx >= 0 ) {
-                  lines += line.mid(0, indx);
+                    lines += line.mid(0, indx);
                 } else {
-                  lines += line + "\n";
+                    lines += line + "\n";
                 }
             }
             file.close();
@@ -178,144 +120,55 @@ bool AlexaAuth::parseJson()
 
             if (jsonError.error != QJsonParseError::NoError){
                 qDebug() << "Cannot parse AlexaClientSDKConfig.json: " << jsonError.errorString();
-                setError(AlexaAuth::ConfigFileFailure);
                 return false;
             }
             return true;
         } else {
             qWarning() << "Couldn't open the config file AlexaClientSDKConfig.json";
-            setError(AlexaAuth::ConfigFileFailure);
             return false;
         }
     } else {
         qWarning() << "Couldn't read the environment variable ALEXA_SDK_CONFIG_FILE";
-        setError(AlexaAuth::ConfigFileFailure);
         return false;
     }
 }
 
-void AlexaAuth::authPageLoaded(bool ok)
+AlexaAuth::AuthStage AlexaAuth::getAuthStage(const QString &title)
 {
-    qDebug() << Q_FUNC_INFO << " " << ok << " " << m_authPage.title();
-    if (ok) {
-        if (m_authPage.title() == HTML_TITLE_FIRST) {
-            QTimer::singleShot(2000, this, &AlexaAuth::signinToAmazon);
+    if (title == HTML_TITLE_FIRST) {
+        return AuthSignIn;
+    } else if (title == HTML_TITLE_SECOND) {
+        return AuthRegisterDevice;
+    }
+    qWarning() << "Unknown HTML title " << title;
+    return AuthError;
+}
 
-        } else if (m_authPage.title() == HTML_TITLE_SECOND) {
-            QTimer::singleShot(1000, this, &AlexaAuth::registerDevice);
+AlexaAuth::SignInResult AlexaAuth::signinToAmazonResult(const QVariant &cb)
+{
+    if (cb.isNull() || cb.toString() == "" || cb.toString() == HTML_ENABLE_COOKIES) {
+        return SignInInputEmail;
+    } else if (cb.toString() == HTML_IMPORTANT_MESSAGE) {
+        qWarning() << "Image capture detected!";
+        return SignInCaptcha;
+    } else if (cb.toString() == HTML_TITLE_ERROR_CAPTCHA) {
+        qWarning() << "Image capture detected!, wrong captcha";
+        return SignInCaptcha;
+    }
 
-        } else {
-            qWarning() << "Unknown HTML title " << m_authPage.title();
-            setError(AlexaAuth::AutomaticAuthFailed);
-        }
+    qDebug() << "Something went wrong in " << Q_FUNC_INFO << " " << cb.toString();
+    return SignInError;
+}
+
+AlexaAuth::RegisterDeviceResult AlexaAuth::registerDeviceResult(const QVariant &cb)
+{
+    if (cb.toString() == HTML_REGISTER_DEVICE) {
+        return AlexaAuth::RegisterDevice;
+    } else if (cb.toString() == HTML_SUCCESS) {
+        qDebug() << "Automatic authorization completed successfully.";
+        return AlexaAuth::RegisterDeviceSuccess;
     } else {
-        qWarning() << "Something went wrong to load the auth page";
-        setError(AlexaAuth::AutomaticAuthFailed);
+        qDebug() << "Something went wrong in " << Q_FUNC_INFO << " " << cb.toString();
+        return AlexaAuth::RegisterDeviceError;
     }
 }
-
-void AlexaAuth::signinToAmazon()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementsByClassName('") + TAG_ALERT_HEADING_ID + "')[0].textContent", [this](const QVariant &cb) {
-        if (cb.isNull() || cb.toString() == "" || cb.toString() == HTML_ENABLE_COOKIES) {
-            inputEMail();
-        } else if (cb.toString() == HTML_IMPORTANT_MESSAGE) {
-            qWarning() << "Image capture detected! Cannot proceed automatically. Please, authorize manually on " << m_authUrl;
-            setError(AlexaAuth::ImageRecognizionRequired);
-        } else {
-            qDebug() << "Something went wrong in " << Q_FUNC_INFO << " " << cb.toString();
-            setError(AlexaAuth::AutomaticAuthFailed);
-        }
-    });
-}
-
-void AlexaAuth::inputEMail()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_EMAIL_ID +"')", [this](const QVariant &cb) {
-        if (cb.isNull()) {
-            qWarning() << "Email field doesn't exist on the page.";
-            setError(AlexaAuth::HtmlItemNotFound);
-        } else {
-            m_authPage.runJavaScript(QString("document.getElementById('") + TAG_EMAIL_ID + "').value='" + m_email + "'");
-            QTimer::singleShot(2000, this, &AlexaAuth::inputPassword);
-        }
-    });
-}
-
-void AlexaAuth::inputPassword()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_PASSWORD_ID + "')", [this](const QVariant &cb){
-        if (cb.isNull()) {
-            qWarning() << "Password field doesn't exist on the page";
-            setError(AlexaAuth::HtmlItemNotFound);
-        } else {
-            m_authPage.runJavaScript(QString("document.getElementById('") + TAG_PASSWORD_ID + "').value='" + m_password + "'");
-            QTimer::singleShot(2000, this, &AlexaAuth::clickSignIn);
-        }
-    });
-}
-
-void AlexaAuth::clickSignIn()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_SIGN_IN_SUBMIT_ID + "')", [this](const QVariant &cb){
-        if (cb.isNull()) {
-            qWarning() << "Sign in button doesn't exist on the page";
-            setError(AlexaAuth::HtmlItemNotFound);
-        } else {
-            m_authPage.runJavaScript(QString("document.getElementById('") + TAG_SIGN_IN_SUBMIT_ID + "').click()");
-        }
-    });
-}
-
-void AlexaAuth::registerDevice()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_SUCCESS_TITLE_ID + "').textContent", [this](const QVariant &cb) {
-        if (cb.toString() == HTML_REGISTER_DEVICE) {
-            inputCode();
-        } else if (cb.toString() == HTML_SUCCESS) {
-            qDebug() << "Automatic authorization completed successfully.";
-            setIsAuthorizing(false);
-            setAuthorizationSucceed(true);
-        } else {
-            qDebug() << "Something went wrong in " << Q_FUNC_INFO << " " << cb.toString();
-            setError(AlexaAuth::AutomaticAuthFailed);
-        }
-    });
-}
-
-void AlexaAuth::inputCode()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_REGISTRATION_FIELD_ID + "')" , [this] (const QVariant &cb) {
-        if (cb.isNull()) {
-            qWarning() << "No field for authorization code!";
-            setError(AlexaAuth::HtmlItemNotFound);
-        } else if (m_authCode.length() > 0) {
-            m_authPage.runJavaScript(QString("document.getElementById('") + TAG_REGISTRATION_FIELD_ID + "').value='" + m_authCode + "'");
-            QTimer::singleShot(2000, this, &AlexaAuth::clickContinue);
-        } else {
-            qDebug() << "Authorization code was empty";
-            setError(AlexaAuth::AutomaticAuthFailed);
-        }
-    });
-}
-
-void AlexaAuth::clickContinue()
-{
-    qDebug() << Q_FUNC_INFO;
-    m_authPage.runJavaScript(QString("document.getElementById('") + TAG_CONTINUE_BUTTON_ID + "')", [this] (const QVariant &cb) {
-        if (cb.isNull()) {
-            qWarning() << "Not found 'continue' button";
-            setError(AlexaAuth::HtmlItemNotFound);
-        } else {
-            m_authPage.runJavaScript(QString("document.getElementById('") + TAG_CONTINUE_BUTTON_ID + "').click()");
-        }
-    });
-    // todo: check what happens if the code was wrong
-}
-#endif
