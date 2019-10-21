@@ -23,7 +23,7 @@ DISTFILES = qmldir
 qmldir.files = qmldir
 
 unix {
-    installPath = /apps/com.luxoft.alexa/imports/alexaauth
+    installPath = $$INSTALL_PREFIX/apps/com.luxoft.alexa/imports/alexaauth
     qmldir.path = $$installPath
     target.path = $$installPath
 

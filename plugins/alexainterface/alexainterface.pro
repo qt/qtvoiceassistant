@@ -86,14 +86,14 @@ qmldir.files = qmldir
 unix {
     DEFINES += GSTREAMER_MEDIA_PLAYER
 
-    installPath = /apps/com.luxoft.alexa/imports/alexainterface
+    installPath = $$INSTALL_PREFIX/apps/com.luxoft.alexa/imports/alexainterface
     qmldir.path = $$installPath
     target.path = $$installPath
 
     kwd.files += ./../../kwd/alexa.umdl \
                  ./../../kwd/common.res
 
-    kwd.path = /apps/com.luxoft.alexa/kwd
+    kwd.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/kwd
 
     INSTALLS += target qmldir kwd
 }

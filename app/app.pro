@@ -16,16 +16,16 @@ FILES += info.yaml \
          AuthWebPageInteraction.qml
 
 app.files = $$FILES
-app.path = /apps/com.luxoft.alexa
+app.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa
 
 assets.files = ./../gfx/*.png
-assets.path = /apps/com.luxoft.alexa/assets
+assets.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/assets
 
 conf.files = ./../conf/AlexaClientSDKConfig.json
-conf.path = /apps/com.luxoft.alexa/conf
+conf.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/conf
 
 database.files = ./../database
-database.path = /apps/com.luxoft.alexa
+database.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa
 
 INSTALLS += app assets conf database
 
