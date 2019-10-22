@@ -13,7 +13,8 @@ FILES += info.yaml \
          WeatherCard.qml \
          InfoCard.qml \
          MainView.qml \
-         AuthWebPageInteraction.qml
+         AuthWebPageInteraction.qml \
+         SettingsView.qml
 
 app.files = $$FILES
 app.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa

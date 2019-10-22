@@ -37,7 +37,6 @@ import alexainterface 1.0
 
 Control {
     id: root
-    property bool unfoldHeader: false
 
     QtObject {
         id: privateData
@@ -109,9 +108,7 @@ Control {
         }
     }
 
-    onUnfoldHeaderChanged: {
-        if (unfoldHeader && privateData.headerTextIndex === 0) {
-            timerTextAnimation.start()
-        }
+    Component.onCompleted: {
+        timerTextAnimation.start()
     }
 }

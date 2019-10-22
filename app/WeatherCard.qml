@@ -74,8 +74,8 @@ BasicCard {
         anchors.rightMargin: Sizes.dp(50)
         spacing: Sizes.dp(50)
         Image {
-            Layout.preferredHeight: root.height/3
-            Layout.preferredWidth: root.height/4
+            Layout.preferredHeight: root.width/8
+            Layout.preferredWidth: root.width/8
             fillMode: Image.PreserveAspectFit
             source: cardData.weatherIcon
             BusyIndicator {
@@ -85,13 +85,13 @@ BasicCard {
         }
         Label {
             Layout.fillWidth: true
-            font.pixelSize: root.height/4
+            font.pixelSize: root.width/5
             text: cardData.temperature + "\u00b0"
             opacity: 0.7
         }
 
         Column {
-            Layout.preferredHeight: root.height/3
+            Layout.preferredHeight: root.width/3
             Layout.preferredWidth: height
             Label {
                 height: parent.height / 2

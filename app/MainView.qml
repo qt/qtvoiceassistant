@@ -50,30 +50,6 @@ Item {
 
     property string neptuneState: "Maximized"
 
-    AuthWebPageInteraction {
-        id: alexaAuth
-        onErrorChanged: {
-            if (error === AlexaAuth.AutomaticAuthFailed){
-                authView.state = "manual_auth"
-            }
-        }
-    }
-
-    Connections {
-        target: AlexaInterface
-        onAuthCodeChanged: {
-            if (AlexaInterface.authCode !== "") {
-                alexaAuth.authCode = AlexaInterface.authCode
-            }
-        }
-        onAuthUrlChanged: {
-            alexaAuth.authUrl = AlexaInterface.authUrl
-        }
-        Component.onCompleted: {
-            AlexaInterface.logLevel = Alexa.Debug9
-        }
-    }
-
     Header {
         id: header
         anchors.top: parent.top
@@ -81,30 +57,128 @@ Item {
         width: parent.width
         height: Sizes.dp(356)
         anchors.horizontalCenter: parent.horizontalCenter
-        unfoldHeader: alexaView.visible || authView.visible
         visible: root.neptuneState === "Maximized"
     }
 
-    Item {
-        id: paneMainView
-        anchors.top: header.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        // to not overlap content with on-top widget
-        height: parent.height - (header.y + header.height)
+    ToolsColumn {
+        id: sectionsColumn
 
-        AlexaView {
-            id: alexaView
-            anchors.fill: parent
-            visible: AlexaInterface.authState === Alexa.Refreshed
-            neptuneState: root.neptuneState
+        anchors.left: parent.left
+        width: Sizes.dp(264)
+        anchors.top: header.bottom
+        anchors.bottom: parent.bottom
+        anchors.topMargin: Sizes.dp(53)
+
+        onClicked: {
+            applyIndex(currentIndex);
         }
 
-        AuthView {
-            id: authView
-            anchors.fill: parent
-            alexaAuth: alexaAuth
-            visible: AlexaInterface.authState !== Alexa.Refreshed
+        // not to have settings all the time and have alexa view all the time
+        // we use StackView, function pushes settings and pops it
+        function applyIndex(index) {
+            //show main, pop settings
+            if (index === 0) {
+                if (stack.depth > 1) {
+                    stack.pop();
+                }
+            }
+            //show settings, push settings
+            if (index === 1) {
+                if (stack.depth === 1) {
+                    stack.push(settingsView);
+                }
+            }
+        }
+
+        ListModel {
+            id: toolsModel
+
+            Component.onCompleted: {
+                //fill list and set model to ToolsColumn
+                append({ "sourceOn": Qt.resolvedUrl("assets/ic-logo_ON.png"),
+                         "sourceOff": Qt.resolvedUrl("assets/ic-logo_OFF.png"),
+                         "text": qsTr("Alexa") });
+                append({"sourceOn": Qt.resolvedUrl("assets/ic-settings_ON.png"),
+                        "sourceOff": Qt.resolvedUrl("assets/ic-settings_OFF.png"),
+                         "text": qsTr("Settings")});
+                sectionsColumn.model = toolsModel
+            }
+        }
+    }
+
+    StackView {
+        id: stack
+
+        anchors.top: header.bottom
+        anchors.left: sectionsColumn.right
+        anchors.right: parent.right
+        height: parent.height - Sizes.dp(50)
+        initialItem: mainView
+        pushEnter: Transition {
+            PropertyAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+        }
+        pushExit: Transition {
+            PropertyAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+        }
+        popEnter: Transition {
+            PropertyAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
+        }
+        popExit: Transition {
+            PropertyAnimation { property: "opacity"; from: 1.0; to: 0; duration: 200 }
+        }
+    }
+
+    Component{
+        id: mainView
+
+        Item {
+            Connections {
+                target: AlexaInterface
+                onAuthCodeChanged: {
+                    if (AlexaInterface.authCode !== "") {
+                        alexaAuth.authCode = AlexaInterface.authCode
+                    }
+                }
+                onAuthUrlChanged: { alexaAuth.authUrl = AlexaInterface.authUrl }
+                onAuthStateChanged: {
+                    if (AlexaInterface.authState === Alexa.Uninitialized) {
+                        alexaAuth.reset()
+                    }
+                }
+                Component.onCompleted: { AlexaInterface.logLevel = Alexa.Debug9 }
+            }
+
+            AuthWebPageInteraction {
+                id: alexaAuth
+                onErrorChanged: {
+                    if (error === AlexaAuth.AutomaticAuthFailed){
+                        authView.state = "manual_auth"
+                    }
+                }
+            }
+
+            AlexaView {
+                id: alexaView
+                anchors.fill: parent
+                visible: AlexaInterface.authState === Alexa.Refreshed
+                neptuneState: root.neptuneState
+            }
+
+            AuthView {
+                id: authView
+                anchors.fill: parent
+                alexaAuth: alexaAuth
+                visible: AlexaInterface.authState !== Alexa.Refreshed
+            }
+        }
+    }
+
+    Component{
+        id: settingsView
+        SettingsView{
+            onResetAccountClicked: {
+                sectionsColumn.applyIndex(0)
+            }
         }
     }
 
