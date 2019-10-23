@@ -114,6 +114,7 @@ public:
 
     qreal audioLevel() const { return m_audioLevel; }
     void setLevelProcess(bool enable) { m_levelProcess = enable; }
+    QStringList deviceList() const;
 
 Q_SIGNALS:
     void audioLevelChanged();

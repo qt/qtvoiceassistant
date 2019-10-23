@@ -46,48 +46,77 @@ Item {
 
     signal resetAccountClicked()
 
-    ColumnLayout {
+    Flickable {
         anchors.fill: parent
         anchors.topMargin: Sizes.dp(80)
-        spacing: Sizes.dp(40)
+        anchors.bottomMargin: Sizes.dp(20)
+        contentHeight: settingsLayout.height
+        clip: true
 
-        ListItem {
-            subText: "123456";
-            text: qsTr("Device serial number")
-            Layout.fillWidth: true
-        }
+        ScrollIndicator.vertical: ScrollIndicator { }
 
-        ListItem {
-            subText: "amzn1.application-oa2-client.a92e3edd0c8542a6bafcd89e5f125851";
-            text: qsTr("Alexa Client ID")
-            Layout.fillWidth: true
-        }
+        ColumnLayout {
+            id: settingsLayout
 
-        ListItem {
-            subText: "default";
-            text: qsTr("Recording device")
-            Layout.fillWidth: true
-        }
+            spacing: Sizes.dp(40)
+            width: parent.width
 
-        ListItemSwitch {
-            text: qsTr("Alexa wake word")
-            switchOn: true
-            enabled: false
-            Layout.fillWidth: true
-        }
+            ListItem {
+                subText: "123456";
+                text: qsTr("Device serial number")
+                Layout.fillWidth: true
+            }
 
-        Button {
-            visible: AlexaInterface.loggedIn
-            implicitWidth: Sizes.dp(315)
-            implicitHeight: Sizes.dp(64)
-            font.pixelSize: Sizes.fontSizeS
-            text: qsTr("Reset account")
-            Layout.alignment: Qt.AlignHCenter
-            enabled: false
-        }
+            ListItem {
+                subText: "amzn1.application-oa2-client.a92e3edd0c8542a6bafcd89e5f125851";
+                text: qsTr("Alexa Client ID")
+                Layout.fillWidth: true
+            }
 
-        Item {
-            Layout.fillHeight: true
+            ListItemSwitch {
+                text: qsTr("Alexa wake word")
+                switchOn: true
+                enabled: false
+                Layout.fillWidth: true
+            }
+
+            Button {
+                visible: AlexaInterface.loggedIn
+                implicitWidth: Sizes.dp(315)
+                implicitHeight: Sizes.dp(64)
+                font.pixelSize: Sizes.fontSizeS
+                text: qsTr("Reset account")
+                Layout.alignment: Qt.AlignHCenter
+                enabled: false
+            }
+
+            ListItem {
+                text: qsTr("Recording devices")
+                Layout.fillWidth: true
+            }
+
+            ListView {
+                id: listView
+                model: AlexaInterface.deviceList
+                height: childrenRect.height
+                Layout.fillWidth: true
+                interactive: false
+                delegate: RadioButton {
+                    checked: modelData === "default"
+                    width: parent.width
+                    height: Sizes.dp(50)
+                    font.pixelSize: Sizes.fontSizeXS
+                    indicator.implicitHeight: Sizes.dp(30)
+                    indicator.implicitWidth: Sizes.dp(30)
+                    text: modelData
+                    spacing: Sizes.dp(10)
+                    checkable: false
+                }
+            }
+
+            Item {
+                Layout.fillHeight: true
+            }
         }
     }
 }

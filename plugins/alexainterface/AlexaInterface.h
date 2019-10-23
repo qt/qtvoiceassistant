@@ -88,6 +88,7 @@ class AlexaInterface: public QObject {
     Q_PROPERTY(ConnectionManager::ConnectionStatus connectionStatus READ connectionStatus NOTIFY connectionStatusChanged)
     Q_PROPERTY(LogLevel logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
     Q_PROPERTY(qreal audioLevel READ audioLevel NOTIFY audioLevelChanged)
+    Q_PROPERTY(QStringList deviceList READ deviceList)
 
 public:
 
@@ -119,6 +120,7 @@ public:
     ConnectionManager::ConnectionStatus connectionStatus() const { return m_connectionStatus; }
     LogLevel logLevel() const { return m_logLevel; }
     qreal audioLevel() const { return m_micWrapper ? m_micWrapper->audioLevel() : 0.0; }
+    QStringList deviceList() const { return m_micWrapper ? m_micWrapper->deviceList() : QStringList(); }
 
     explicit AlexaInterface(QObject* parent = nullptr);
     /// Destructor which manages the @c AlexaInterface shutdown sequence.

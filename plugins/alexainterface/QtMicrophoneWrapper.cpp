@@ -171,6 +171,19 @@ void QtMicrophoneWrapper::setAudioDevice(const QString &deviceName) {
     qDebug("QtMicrophoneWrapper: Latency is configured to: %d ms", m_audioInput->notifyInterval());
 }
 
+QStringList QtMicrophoneWrapper::deviceList() const
+{
+    QStringList deviceNames;
+
+    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+
+    for (QAudioDeviceInfo &device : devices) {
+        deviceNames.append(device.deviceName());
+    }
+
+    return deviceNames;
+}
+
 AudioLevelInfo::AudioLevelInfo(const QAudioFormat &format)
 {
     init(format);

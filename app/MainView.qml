@@ -112,7 +112,7 @@ Item {
         anchors.top: header.bottom
         anchors.left: sectionsColumn.right
         anchors.right: parent.right
-        height: parent.height - Sizes.dp(50)
+        height: parent.height - header.height - Sizes.dp(50)
         initialItem: mainView
         pushEnter: Transition {
             PropertyAnimation { property: "opacity"; from: 0; to: 1.0; duration: 200 }
