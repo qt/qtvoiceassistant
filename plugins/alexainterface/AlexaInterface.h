@@ -62,6 +62,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QQmlEngine>
+#include <QSettings>
 
 #include "WeatherCard.h"
 #include "InfoCard.h"
@@ -88,7 +89,8 @@ class AlexaInterface: public QObject {
     Q_PROPERTY(ConnectionManager::ConnectionStatus connectionStatus READ connectionStatus NOTIFY connectionStatusChanged)
     Q_PROPERTY(LogLevel logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
     Q_PROPERTY(qreal audioLevel READ audioLevel NOTIFY audioLevelChanged)
-    Q_PROPERTY(QStringList deviceList READ deviceList)
+    Q_PROPERTY(QStringList deviceList READ deviceList NOTIFY deviceListChanged)
+    Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName NOTIFY deviceNameChanged)
 
 public:
 
@@ -121,6 +123,8 @@ public:
     LogLevel logLevel() const { return m_logLevel; }
     qreal audioLevel() const { return m_micWrapper ? m_micWrapper->audioLevel() : 0.0; }
     QStringList deviceList() const { return m_micWrapper ? m_micWrapper->deviceList() : QStringList(); }
+    QString deviceName() const { return m_micWrapper ? m_micWrapper->deviceName() : ""; }
+    void setDeviceName(const QString &audioDeviceName);
 
     explicit AlexaInterface(QObject* parent = nullptr);
     /// Destructor which manages the @c AlexaInterface shutdown sequence.
@@ -218,6 +222,8 @@ Q_SIGNALS:
     void logLevelChanged();
     void cardReady(BaseCard *card);
     void audioLevelChanged();
+    void deviceListChanged();
+    void deviceNameChanged();
 
 private:
     static std::unique_ptr<AlexaInterface> instance;

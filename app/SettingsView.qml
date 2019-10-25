@@ -93,16 +93,21 @@ Item {
             ListItem {
                 text: qsTr("Recording devices")
                 Layout.fillWidth: true
+                rightToolSymbol: "ic-update"
+                onRightToolClicked: {
+                    //refresh model
+                    deviceListBind.value = AlexaInterface.deviceList
+                }
             }
+
 
             ListView {
                 id: listView
-                model: AlexaInterface.deviceList
                 height: childrenRect.height
                 Layout.fillWidth: true
                 interactive: false
                 delegate: RadioButton {
-                    checked: modelData === "default"
+                    checked: AlexaInterface.deviceName === modelData
                     width: parent.width
                     height: Sizes.dp(50)
                     font.pixelSize: Sizes.fontSizeXS
@@ -111,6 +116,16 @@ Item {
                     text: modelData
                     spacing: Sizes.dp(10)
                     checkable: false
+                    onClicked: {
+                        AlexaInterface.deviceName = modelData
+                    }
+                }
+
+                Binding {
+                    id: deviceListBind
+                    target: listView
+                    property: "model"
+                    value: AlexaInterface.deviceList
                 }
             }
 

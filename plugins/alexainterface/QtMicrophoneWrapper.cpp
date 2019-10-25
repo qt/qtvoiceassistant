@@ -82,6 +82,7 @@ bool QtMicrophoneWrapper::startStreamingMicrophoneData() {
     m_audioInputIODevice = m_audioInput->start();
 
     if (m_audioInput->error() != QAudio::NoError) {
+        m_audioInputIODevice = nullptr;
         qWarning() << "Start stream error:" << m_audioInput->error();
         return false;
     }
@@ -110,8 +111,8 @@ bool QtMicrophoneWrapper::stopStreamingMicrophoneData() {
     return true;
 }
 
-void QtMicrophoneWrapper::setAudioDevice(const QString &deviceName) {
-    qDebug() << "Trying to select input device: " << deviceName;
+void QtMicrophoneWrapper::setAudioDevice(const QString &audioDeviceName) {
+    qDebug() << "Trying to select input device: " << audioDeviceName;
 
     QAudioFormat format;
     format.setSampleRate(SAMPLE_RATE);
@@ -128,8 +129,9 @@ void QtMicrophoneWrapper::setAudioDevice(const QString &deviceName) {
     qDebug() << "Available capture devices:" << devices.size();
     for (QAudioDeviceInfo &device : devices) {
         qDebug() << "     device name: " << device.deviceName();
-        if (device.deviceName() == deviceName) {
+        if (device.deviceName() == audioDeviceName) {
             audioInfo = device;
+            m_deviceName = audioDeviceName;
         }
     }
 
@@ -147,7 +149,6 @@ void QtMicrophoneWrapper::setAudioDevice(const QString &deviceName) {
     m_audioLevelInfo.init(m_audioInput->format());
 
     QObject::connect(m_audioInput, &QAudioInput::notify, this, [this](){
-
         QByteArray readBytes = m_audioInputIODevice->readAll();
         m_readAudioData.append(readBytes);
         m_readAudioDataBytes += readBytes.count();
@@ -182,6 +183,25 @@ QStringList QtMicrophoneWrapper::deviceList() const
     }
 
     return deviceNames;
+}
+
+void QtMicrophoneWrapper::setDeviceName(const QString &audioDeviceName)
+{
+    if (m_audioInput) {
+        m_audioInput->stop();
+        if (m_audioInputIODevice) {
+            m_audioInputIODevice->close();
+            m_audioInputIODevice = nullptr;
+        }
+        delete m_audioInput;
+        m_audioInput = nullptr;
+        m_readAudioData.clear();
+        m_readAudioDataBytes = 0;
+        m_deviceName = "";
+    }
+    setAudioDevice(audioDeviceName);
+    startStreamingMicrophoneData();
+    Q_EMIT deviceNameChanged();
 }
 
 AudioLevelInfo::AudioLevelInfo(const QAudioFormat &format)

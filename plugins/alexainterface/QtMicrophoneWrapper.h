@@ -115,9 +115,12 @@ public:
     qreal audioLevel() const { return m_audioLevel; }
     void setLevelProcess(bool enable) { m_levelProcess = enable; }
     QStringList deviceList() const;
+    QString deviceName() const { return m_deviceName; }
+    void setDeviceName(const QString &audioDeviceName);
 
 Q_SIGNALS:
     void audioLevelChanged();
+    void deviceNameChanged();
 
 private:
     /**
@@ -133,11 +136,12 @@ private:
     qreal m_audioLevel = 0.0; // 0.0 <= m_audioLevel <= 1.0
     bool m_levelProcess = false;
     AudioLevelInfo m_audioLevelInfo;
+    QString m_deviceName;
 
 
     /// Initializes Audio
     bool initialize(const QString &deviceName);
-    void setAudioDevice(const QString &deviceName);
+    void setAudioDevice(const QString &audioDeviceName);
 
     /// The stream of audio data.
     const std::shared_ptr<avsCommon::avs::AudioInputStream> m_audioInputStream;

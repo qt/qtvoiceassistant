@@ -921,6 +921,7 @@ bool AlexaInterface::initialize(
     bool processAudioLevel = settings.value(QStringLiteral("capture/process_input"), true).toBool();
     m_micWrapper->setLevelProcess(processAudioLevel);
     QObject::connect(m_micWrapper.get(), &QtMicrophoneWrapper::audioLevelChanged, this, &AlexaInterface::audioLevelChanged);
+    QObject::connect(m_micWrapper.get(), &QtMicrophoneWrapper::deviceNameChanged, this, &AlexaInterface::deviceNameChanged);
 
 
     // Creating wake word audio provider, if necessary
@@ -1092,4 +1093,14 @@ void AlexaInterface::onAuthCodeReady(QString authURL, QString authCode) {
 void AlexaInterface::onConnectionStatusChanged() {
     m_connectionStatus = m_connectionManager->connectionStatus();
     Q_EMIT connectionStatusChanged();
+}
+
+void AlexaInterface::setDeviceName(const QString &audioDeviceName)
+{
+    if (m_micWrapper) {
+        m_micWrapper->setDeviceName(audioDeviceName);
+
+        QSettings settings(QStringLiteral("Luxoft Sweden AB"), QStringLiteral("AlexaApp"));
+        settings.setValue(QStringLiteral("capture/device_name"), audioDeviceName);
+    }
 }
