@@ -66,7 +66,7 @@
 
 #include "WeatherCard.h"
 #include "InfoCard.h"
-#include "vehicleintentcard.h"
+#include "VehicleIntentCard.h"
 
 using namespace alexaClientSDK;
 

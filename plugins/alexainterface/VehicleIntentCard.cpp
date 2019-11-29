@@ -29,7 +29,7 @@
 **
 ****************************************************************************/
 
-#include "vehicleintentcard.h"
+#include "VehicleIntentCard.h"
 #include <QDebug>
 
 VehicleIntentCard::VehicleIntentCard(QObject *parent)

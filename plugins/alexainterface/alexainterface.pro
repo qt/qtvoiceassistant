@@ -58,7 +58,7 @@ SOURCES += \
         DialogStateManager.cpp \
         CapabilitiesManager.cpp \
         QtMicrophoneWrapper.cpp \
-        vehicleintentcard.cpp
+        VehicleIntentCard.cpp
 
 HEADERS += \
         AuthManager.h \
@@ -76,7 +76,7 @@ HEADERS += \
         DialogStateManager.h \
         CapabilitiesManager.h \
         QtMicrophoneWrapper.h \
-        vehicleintentcard.h
+        VehicleIntentCard.h
 
 DISTFILES = qmldir
 
