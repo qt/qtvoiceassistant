@@ -29,41 +29,34 @@
 **
 ****************************************************************************/
 
-#ifndef BASECARD_H
-#define BASECARD_H
+#ifndef OPENAPPINTENTCARD_H
+#define OPENAPPINTENTCARD_H
+
 
 #include <QObject>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include "BaseCard.h"
 
-class BaseCard : public QObject
+
+class OpenAppIntentCard : public BaseCard
 {
     Q_OBJECT
-    Q_PROPERTY(Type type READ type WRITE setType NOTIFY typeChanged)
+
+    Q_PROPERTY(QString appName READ appName NOTIFY appNameChanged)
 
 public:
-    enum Type {
-        Weather,
-        Info,
-        VehicleIntent,
-        OpenAppIntent,
-        Unknown
-    };
-    Q_ENUM(Type)
+    explicit OpenAppIntentCard(QObject *parent = nullptr);
+    void setJsonDocument(QJsonDocument jsonDocument) override;
 
-    explicit BaseCard(QObject *parent = nullptr);
-
-    void setType(Type type);
-    Type type() const { return m_type; }
-
-    virtual void setJsonDocument(QJsonDocument jsonDocument) = 0;
-
+    QString appName() const;
 Q_SIGNALS:
-    void typeChanged(Type type);
-
-public Q_SLOTS:
+    void appNameChanged();
 
 private:
-    Type m_type = Type::Unknown;
+    QString m_appName;
 };
 
-#endif // BASECARD_H
+
+#endif // OPENAPPINTENTCARD_H

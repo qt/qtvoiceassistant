@@ -834,9 +834,22 @@ bool AlexaInterface::initialize(
             if (p) {
                 QString title = obj["title"].toObject()["mainTitle"].toString();
                 if (title == "amzn1.ask.skill.245b836a-df7a-4407-a6a9-ccc2afd2c73e") {
-                    VehicleIntentCard *card = new VehicleIntentCard(p);
-                    card->setJsonDocument(doc);
-                    Q_EMIT cardReady(card);
+
+                    //get intent name
+                    QString jsonString = obj["textField"].toString();
+                    QJsonDocument intentDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+                    QJsonObject intentObj = intentDoc.object();
+
+                    if (intentObj["name"].toString() == QStringLiteral("open_app")) {
+                        OpenAppIntentCard *card = new OpenAppIntentCard(p);
+                        card->setJsonDocument(doc);
+                        Q_EMIT cardReady(card);
+                    } else if (intentObj["name"].toString() == QStringLiteral("VehicleControlIntent")) {
+                        VehicleIntentCard *card = new VehicleIntentCard(p);
+                        card->setJsonDocument(doc);
+                        Q_EMIT cardReady(card);
+                    }
+
                 } else {
                     InfoCard *infoCard = new InfoCard(p);
                     infoCard->setJsonDocument(doc);

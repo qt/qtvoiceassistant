@@ -207,6 +207,16 @@ Control {
                         console.log(Logging.apps, "Intent request failed: " + request.errorMessage)
                     }
                 });
+            } else if (card.type === BaseCard.OpenAppIntent) {
+                request = IntentClient.sendIntentRequest("activate-app", {"guess-app": card.appName});
+                request.onReplyReceived.connect(function() {
+                    if (request.succeeded) {
+                        var result = request.result
+                        console.log(Logging.apps, "Intent result: " + result.done)
+                    } else {
+                        console.log(Logging.apps, "Intent request failed: " + request.errorMessage)
+                    }
+                });
             }
         }
     }

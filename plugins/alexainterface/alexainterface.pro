@@ -45,6 +45,7 @@ DEFINES += RAPIDJSON_HAS_STDSTRING
 SOURCES += \
         AuthManager.cpp \
         ConnectionManager.cpp \
+        OpenAppIntentCard.cpp \
         alexainterface_plugin.cpp \
         InteractionManager.cpp \
         KeywordObserver.cpp \
@@ -63,6 +64,7 @@ SOURCES += \
 HEADERS += \
         AuthManager.h \
         ConnectionManager.h \
+        OpenAppIntentCard.h \
         alexainterface_plugin.h \
         InteractionManager.h \
         KeywordObserver.h \
