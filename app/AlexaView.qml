@@ -271,7 +271,7 @@ Control {
                 color: "#80000000"
                 source: interactionButton.background
             }
-            RoundButton {
+            Button {
                 id: interactionButton
                 visible: opacity > 0
                 anchors.horizontalCenter: parent.horizontalCenter

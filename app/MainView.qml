@@ -199,7 +199,7 @@ Item {
                 radius: width / 2
                 color: Style.accentColor
             }
-            RoundButton {
+            Button {
                 id: interactionButton
                 visible: opacity > 0
                 anchors.horizontalCenter: parent.horizontalCenter
