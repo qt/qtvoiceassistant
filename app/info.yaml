@@ -15,3 +15,7 @@ name:
   de: 'Alexa'
 
 categories: [ 'other' ]
+
+intents:
+- id: activate-app
+- id: trigger-voiceassistant

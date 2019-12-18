@@ -19,6 +19,9 @@ FILES += info.yaml \
 app.files = $$FILES
 app.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa
 
+stores.files = stores/*
+stores.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/stores
+
 assets.files = ./../gfx/*.png
 assets.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/assets
 
@@ -28,6 +31,6 @@ conf.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/conf
 database.files = ./../database
 database.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa
 
-INSTALLS += app assets conf database
+INSTALLS += app stores assets conf database
 
 OTHER_FILES += $$FILES

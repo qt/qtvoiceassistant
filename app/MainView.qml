@@ -49,6 +49,7 @@ Item {
     id: root
 
     property string neptuneState: "Maximized"
+    property var store
 
     Header {
         id: header
@@ -224,16 +225,7 @@ Item {
                     }
                 }
                 enabled: AlexaInterface.connectionStatus === Alexa.Connected
-                onClicked: {
-                    var dialogState = AlexaInterface.dialogState;
-
-                    if (dialogState === Alexa.Idle) {
-                        AlexaInterface.tapToTalk();
-                    } else if ( (dialogState === Alexa.Listening)
-                               || (dialogState === Alexa.Speaking) ) {
-                        AlexaInterface.stopTalking();
-                    }
-                }
+                onClicked: { root.triggerVoiceAssistant(); }
                 Image {
                     id: busyIndicator
                     anchors.centerIn: parent
@@ -259,5 +251,24 @@ Item {
                 }
             }
         }
+    }
+
+    Connections {
+        target: store
+        onTriggerVoiceAssistant: {
+            root.triggerVoiceAssistant();
+        }
+    }
+
+    function triggerVoiceAssistant() {
+        var dialogState = AlexaInterface.dialogState;
+
+        if (dialogState === Alexa.Idle) {
+            AlexaInterface.tapToTalk();
+        } else if ( (dialogState === Alexa.Listening)
+                   || (dialogState === Alexa.Speaking) ) {
+            AlexaInterface.stopTalking();
+        }
+
     }
 }

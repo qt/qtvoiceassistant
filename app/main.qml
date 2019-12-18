@@ -38,6 +38,8 @@ import QtQuick.Controls 2.5
 import shared.Sizes 1.0
 import shared.Style 1.0
 
+import "stores" 1.0
+
 ApplicationCCWindow {
     id: root
 
@@ -82,6 +84,14 @@ ApplicationCCWindow {
             item.height = Qt.binding(function() { return root.exposedRect.height; })
             item.neptuneState = Qt.binding(function() { return root.neptuneState; })
             item.visible = Qt.binding(function() { return root.exposedRect.height > 0; })
+            item.store = alexaStore
+        }
+    }
+
+    AlexaStore {
+        id: alexaStore
+        onRequestRaiseAppReceived: {
+            root.riseWindow();
         }
     }
 }
