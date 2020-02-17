@@ -34,6 +34,7 @@
 #include <ACL/Transport/PostConnectSynchronizer.h>
 #include <AVSCommon/Utils/LibcurlUtils/LibcurlHTTP2ConnectionFactory.h>
 #include <QSettings>
+#include <QtQml>
 
 #include "KeywordObserver.h"
 #include "AlexaInterface.h"
@@ -113,6 +114,12 @@
 #include "SampleEqualizerModeController.h"
 
 using namespace alexaClientSDK;
+
+// Path to AVS SDK JSON config file
+const QString ALEXA_SDK_CONFIG_FILE = QLatin1String("./conf/AlexaClientSDKConfig.json");
+
+// Path to keyword detection data folder
+const QString ALEXA_KWD_MODEL_PATH = QLatin1String("./kwd");
 
 /// The sample rate of microphone audio data.
 static const unsigned int SAMPLE_RATE_HZ = 16000;
@@ -290,14 +297,97 @@ AlexaInterface::~AlexaInterface() {
     AlexaInterface::instanceCounter -= 1;
 }
 
-void AlexaInterface::initAlexaQMLClient()
+bool AlexaInterface::verifyConfigJson() const
 {
-    if (!qEnvironmentVariableIsSet("ALEXA_SDK_CONFIG_FILE")) {
-        qCritical() << "Define environment variable ALEXA_SDK_CONFIG_FILE to find AlexaClientSDKConfig.json";
+    if (!m_isSDKInitialized) {
+        qmlWarning(this) << "AlexaInterface is not initialized...";
+        return false;
+    }
+
+    QFile file{m_sdkFileName};
+    if (file.open(QIODevice::ReadOnly)) {
+        QJsonParseError jsonError;
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &jsonError);
+        if (jsonError.error != QJsonParseError::NoError){
+            qmlWarning(this) << "Cannot parse AlexaClientSDKConfig.json: "
+                             << jsonError.errorString()
+                             << " file path: " << m_sdkFileName;
+            return false;
+        }
+    } else {
+        qmlWarning(this) << "Couldn't open the config file: " << m_sdkFileName;
+        return false;
+    }
+
+    return true;
+}
+
+void AlexaInterface::checkAndInitializeConfig(const QString &configFileName,
+                                              const QString &appRootPath) const
+{
+    if (QFile::exists(configFileName)) {
+        // we already have filled correct file
         return;
     }
-    if (!QFileInfo::exists(qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE"))) {
-        qCritical() << qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE") << "not found";
+
+    qmlInfo(this) << "Alexa app first run, initializing config file: "
+                  << configFileName;
+
+    // load source config json file from resources and update paths to db files according to the
+    // current app path. This step is required for "single process" mode as in this
+    // case neptune3 (appman) executable path is reported as working dir, not the actual path
+    // to main.qml file of the Alexa app
+    QFile src{":/conf/AlexaClientSDKConfig.json"};
+    src.open(QIODevice::ReadOnly);
+    QJsonDocument doc = QJsonDocument::fromJson(src.readAll());
+
+    QJsonObject obj = doc.object();
+    const QStringList keys{"cblAuthDelegate", "alertsCapabilityAgent",
+                     "deviceSettings", "miscDatabase", "certifiedSender",
+                    "notifications", "settings", "bluetooth"};
+    for (const auto& key : keys) {
+        QJsonValueRef ref = obj.find(key).value();
+        QJsonObject refObj = ref.toObject();
+        refObj.insert("databaseFilePath",
+                      appRootPath + refObj.value("databaseFilePath").toString());
+        ref = refObj;
+    }
+    doc.setObject(obj);
+
+    // create "conf" dir if not exist
+    QDir dir{QFileInfo(configFileName).path()};
+    if (!dir.exists()) {
+        if (!dir.mkpath(dir.path())) {
+            qmlWarning(this) << "Couldn't create config file: " << configFileName;
+        }
+    }
+
+    // save conf file
+    QFile file{configFileName};
+    if (file.open(QIODevice::NewOnly | QIODevice::WriteOnly)) {
+        if (file.write(doc.toJson()) == -1) {
+            qmlWarning(this) << "Could't write initial data to the config file. "
+                                << configFileName;
+        }
+        file.close();
+    } else {
+        qmlWarning(this) << "Couldn't open for edit or file aready exists: "
+                         << configFileName;
+    }
+}
+
+void AlexaInterface::initAlexaQMLClient(const QUrl &url)
+{
+    if (m_isSDKInitialized) {
+        qmlWarning(this) << "AlexaInterface already initialized...";
+        return;
+    }
+
+    m_sdkFileName = url.toLocalFile() + ALEXA_SDK_CONFIG_FILE;
+    checkAndInitializeConfig(m_sdkFileName, url.toLocalFile());
+
+    if (!QFileInfo::exists(m_sdkFileName)) {
+        qCritical() << m_sdkFileName << "not found";
         return;
     }
 
@@ -305,36 +395,36 @@ void AlexaInterface::initAlexaQMLClient()
 
         std::vector<std::string> configFileStd;
         configFileStd.clear();
-        configFileStd.push_back( qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE").toStdString() );
+        configFileStd.push_back( m_sdkFileName.toStdString() );
 
         // If avs-device-sdk is built without keyword support, kwdModelPath remains empty
         QString kwdModelPath;
 
 #ifdef KWD
-        if (!qEnvironmentVariableIsSet("ALEXA_KWD_MODEL_PATH")) {
-            qCritical() << "ALEXA_KWD_MODEL_PATH not defined";
-            return;
-        }
-
-        kwdModelPath = qEnvironmentVariable("ALEXA_KWD_MODEL_PATH");
-
+        kwdModelPath = ALEXA_KWD_MODEL_PATH;
         if (!QFileInfo::exists(kwdModelPath + "/common.res") || !QFileInfo::exists(kwdModelPath + "/alexa.umdl")) {
             qCritical() << "Keyword resource file common.res or voice model alexa.umdl not found, "
                            "please make sure you have ALEXA_KWD_MODEL_PATH/common.res and "
                            "ALEXA_KWD_MODEL_PATH/alexa.umdl";
+            m_isSDKInitialized = false;
             return;
         }
 #endif
         if (!this->initialize(
                     configFileStd,
                     kwdModelPath.toStdString(),
+                    url.toLocalFile().toStdString(),
                     m_logLevelString.toStdString())) {
             qCritical() << "Failed to initialize AlexaInterface.";
 #ifdef KWD
-            qDebug() << "ALEXA_KWD_MODEL_PATH: " << qEnvironmentVariable("ALEXA_KWD_MODEL_PATH");
+            qCritical() << "ALEXA_KWD_MODEL_PATH: " << kwdModelPath;
 #endif
-            qDebug() << "ALEXA_SDK_CONFIG_FILE: " << qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE");
+            qCritical() << "Alexa SDK config file: " << m_sdkFileName;
+            m_isSDKInitialized = false;
+        } else {
+            m_isSDKInitialized = true;
         }
+
         if (!ignoreSigpipeSignals()) {
             qCritical() << "Failed to set a signal handler for SIGPIPE";
         }
@@ -345,11 +435,21 @@ void AlexaInterface::initAlexaQMLClient()
 
 void AlexaInterface::tapToTalk()
 {
+    if (!m_isSDKInitialized) {
+        qmlWarning(this) << "AlexaInterface is not initialized...";
+        return;
+    }
+
     m_interactionManager->tap();
 }
 
 void AlexaInterface::stopTalking()
 {
+    if (!m_isSDKInitialized) {
+        qmlWarning(this) << "AlexaInterface is not initialized...";
+        return;
+    }
+
     m_interactionManager->stopForegroundActivity();
 }
 
@@ -388,10 +488,15 @@ bool AlexaInterface::createMediaPlayersForAdapters(
 #endif
 }
 
-bool AlexaInterface::initialize(
-        const std::vector<std::string>& configFiles,
-        const std::string& pathToInputFolder,
+bool AlexaInterface::initialize(const std::vector<std::string>& configFiles,
+        const std::string& kwdModelPath,
+        const std::string& appRootPath,
         const std::string& logLevel) {
+
+#ifndef KWD
+    Q_UNUSED(kwdModelPath)
+    Q_UNUSED(appRootPath)
+#endif
 
     avsCommon::utils::logger::Level logLevelValue = avsCommon::utils::logger::Level::UNKNOWN;
     if (!logLevel.empty()) {
@@ -972,7 +1077,7 @@ bool AlexaInterface::initialize(
     {keywordObserver},
                 std::unordered_set<
                 std::shared_ptr<alexaClientSDK::avsCommon::sdkInterfaces::KeyWordDetectorStateObserverInterface>>(),
-                pathToInputFolder);
+                kwdModelPath);
     if (!m_keywordDetector) {
         ACSDK_CRITICAL(LX("Failed to create keyword detector!"));
     }

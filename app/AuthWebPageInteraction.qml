@@ -33,6 +33,7 @@ import QtQuick 2.0
 import QtWebEngine 1.8
 
 import alexaauth 1.0
+import alexainterface 1.0
 
 QtObject {
     id: root
@@ -88,7 +89,7 @@ QtObject {
 
     function authorize()
     {
-        if (AlexaAuth.parseJson()) {
+        if (AlexaInterface.verifyConfigJson()) {
             isAuthorizing = true;
             authPage.url = authUrl;
         } else {

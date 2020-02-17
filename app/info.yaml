@@ -7,9 +7,7 @@ runtime: qml
 code:    main.qml
 runtimeParameters:
   importPaths: [ '.' , "./imports"]
-  environmentVariables:
-    ALEXA_SDK_CONFIG_FILE: ./conf/AlexaClientSDKConfig.json
-    ALEXA_KWD_MODEL_PATH: ./kwd
+
 name:
   en: 'Alexa'
   de: 'Alexa'

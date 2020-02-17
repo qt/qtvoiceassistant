@@ -94,45 +94,6 @@ QString AlexaAuth::getJSString(AlexaAuth::JSAuthString id, const QString &value)
     return result;
 }
 
-bool AlexaAuth::parseJson() const
-{
-    if (qEnvironmentVariableIsSet("ALEXA_SDK_CONFIG_FILE")) {
-        QFile file(qEnvironmentVariable("ALEXA_SDK_CONFIG_FILE"));
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-
-            QJsonParseError jsonError;
-            QTextStream in(&file);
-            QString lines, line;
-            int indx = 0;
-            // Remove comment lines because Qt doesn't parse those
-            while (!in.atEnd()) {
-                line = in.readLine();
-                indx = line.indexOf("//");
-                if ( indx >= 0 ) {
-                    lines += line.mid(0, indx);
-                } else {
-                    lines += line + "\n";
-                }
-            }
-            file.close();
-
-            QJsonDocument doc = QJsonDocument::fromJson(lines.toUtf8(), &jsonError);
-
-            if (jsonError.error != QJsonParseError::NoError){
-                qDebug() << "Cannot parse AlexaClientSDKConfig.json: " << jsonError.errorString();
-                return false;
-            }
-            return true;
-        } else {
-            qWarning() << "Couldn't open the config file AlexaClientSDKConfig.json";
-            return false;
-        }
-    } else {
-        qWarning() << "Couldn't read the environment variable ALEXA_SDK_CONFIG_FILE";
-        return false;
-    }
-}
-
 AlexaAuth::AuthStage AlexaAuth::getAuthStage(const QString &title)
 {
     if (title == HTML_TITLE_FIRST) {

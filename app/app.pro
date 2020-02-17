@@ -25,12 +25,9 @@ stores.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/stores
 assets.files = ./../gfx/*.png
 assets.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/assets
 
-conf.files = ./../conf/AlexaClientSDKConfig.json
-conf.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa/conf
-
 database.files = ./../database
 database.path = $$INSTALL_PREFIX/apps/com.luxoft.alexa
 
-INSTALLS += app stores assets conf database
+INSTALLS += app stores assets database
 
 OTHER_FILES += $$FILES

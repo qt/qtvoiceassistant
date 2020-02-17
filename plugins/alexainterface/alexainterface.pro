@@ -1,4 +1,8 @@
 # The Alexa SDK must be built before building this plugin
+macos{
+    PKG_CONFIG = /usr/local/bin/pkg-config
+}
+
 CONFIG += link_pkgconfig
 PKGCONFIG += gstreamer-1.0
 PKGCONFIG += glib-2.0
@@ -12,6 +16,7 @@ USE_WAKEUP_WORD = 1
 
 # Specify if the libraries headers use the old or new ABI
 DEFINES += _GLIBCXX_USE_CXX11_ABI=1
+
 
 #-----------------------------
 TEMPLATE = lib
@@ -82,6 +87,9 @@ HEADERS += \
 
 DISTFILES = qmldir
 
+
+RESOURCES += \
+    res.qrc
 
 qmldir.files = qmldir
 

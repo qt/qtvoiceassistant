@@ -116,20 +116,10 @@ public:
 
     explicit AlexaAuth(QObject *parent = nullptr);
 
-    Q_INVOKABLE bool parseJson() const;
     Q_INVOKABLE AlexaAuth::AuthStage getAuthStage(const QString &title);
     Q_INVOKABLE QString getJSString(AlexaAuth::JSAuthString id, const QString &value = "") const;
     Q_INVOKABLE AlexaAuth::SignInResult signinToAmazonResult(const QVariant &cb);
     Q_INVOKABLE AlexaAuth::RegisterDeviceResult registerDeviceResult(const QVariant &cb);
 };
-
-static QObject *alexaAuthSingletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    AlexaAuth *singletonObject = new AlexaAuth();
-    return singletonObject;
-}
 
 #endif // ALEXAAUTH_H

@@ -134,7 +134,8 @@ public:
     /**
      *  This must be called in QML.
      */
-    Q_INVOKABLE void initAlexaQMLClient();
+    Q_INVOKABLE void initAlexaQMLClient(const QUrl &url);
+    Q_INVOKABLE bool verifyConfigJson() const;
     Q_INVOKABLE void tapToTalk();
     Q_INVOKABLE void stopTalking();
 
@@ -239,20 +240,32 @@ private:
     ConnectionManager::ConnectionStatus m_connectionStatus = ConnectionManager::ConnectionStatus::Disconnected;
     LogLevel m_logLevel = LogLevel::Debug9;
     QString m_logLevelString = "DEBUG9";
+    bool m_isSDKInitialized{false};
+    QString m_sdkFileName;
+
+    /**
+     * Check if config json exists and if not create it and fill correct paths
+     * for db files
+     *
+     * @param configFileName - full path with file to json config file in app folder
+     * @param appRootPath - path to app foler, which contains main.qml
+     */
+    void checkAndInitializeConfig(const QString &configFileName, const QString &appRootPath) const;
 
     /**
      * Initialize a AlexaInterface.
      *
-     * @param consoleReader The @c ConsoleReader to read inputs from console.
      * @param configFiles The vector of configuration files.
-     * @param pathToInputFolder The path to the inputs folder containing data files needed by this application.
+     * @param kwdModelPath The path to the inputs folder containing data files needed KWD.
+     * @param appRootPath The path to the app root folder where db and config is stored.
      * @param logLevel The level of logging to enable.  If this parameter is an empty string, the SDK's default
      *     logging level will be used.
      * @return @c true if initialization succeeded, else @c false.
      */
     bool initialize(
         const std::vector<std::string>& configFiles,
-        const std::string& pathToInputFolder,
+        const std::string& kwdModelPath,
+        const std::string& appRootPath,
         const std::string& logLevel);
 
     /**
@@ -345,15 +358,5 @@ private:
     std::shared_ptr<applicationUtilities::androidUtilities::AndroidSLESEngine> m_openSlEngine;
 #endif
 };
-
-static QObject *alexaInterfaceSingletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    AlexaInterface *singletonObject = new AlexaInterface();
-    singletonObject->initAlexaQMLClient();
-    return singletonObject;
-}
 
 #endif  // ALEXA_INTERFACE_H_

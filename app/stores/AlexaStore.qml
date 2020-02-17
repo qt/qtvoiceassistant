@@ -31,6 +31,7 @@
 
 import QtQuick 2.8
 import QtApplicationManager.Application 2.0
+import alexainterface 1.0
 
 QtObject {
     id: root
@@ -54,5 +55,13 @@ QtObject {
                 break;
             }
         }
+    }
+
+    Component.onCompleted: {
+        // For multi-process mode of QtAppMan all the paths for apps are relative to their main.qml.
+        // But for single process mode all paths are relative to main.qml of the Neptune 3 UI
+        // and we need to discover where we are. This is workaround to make Alexa app support
+        // singe-process mode and initialize db and configs paths to absolute paths upon start up
+        AlexaInterface.initAlexaQMLClient(Qt.resolvedUrl(".."))
     }
 }
