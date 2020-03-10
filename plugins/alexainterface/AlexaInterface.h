@@ -68,6 +68,7 @@
 #include "InfoCard.h"
 #include "VehicleIntentCard.h"
 #include "OpenAppIntentCard.h"
+#include "ConsolePrinter.h"
 
 using namespace alexaClientSDK;
 
@@ -239,9 +240,11 @@ private:
     QString m_authCode;
     ConnectionManager::ConnectionStatus m_connectionStatus = ConnectionManager::ConnectionStatus::Disconnected;
     LogLevel m_logLevel = LogLevel::Debug9;
-    QString m_logLevelString = "DEBUG9";
+    std::shared_ptr<alexaClientSDK::avsCommon::utils::logger::Logger>
+        m_consolePrinter{std::make_shared<ConsolePrinter>(avsCommon::utils::logger::Level::DEBUG9)};
     bool m_isSDKInitialized{false};
     QString m_sdkFileName;
+
 
     /**
      * Check if config json exists and if not create it and fill correct paths
@@ -266,7 +269,7 @@ private:
         const std::vector<std::string>& configFiles,
         const std::string& kwdModelPath,
         const std::string& appRootPath,
-        const std::string& logLevel);
+        const LogLevel logLevel);
 
     /**
      * Create an application media player.

@@ -58,6 +58,61 @@ QtObject {
     }
 
     Component.onCompleted: {
+        if (ApplicationInterface.applicationProperties.logLevel) {
+            switch (ApplicationInterface.applicationProperties.logLevel) {
+            case 'none':
+                AlexaInterface.logLevel = Alexa.None;
+                break;
+            case 'critical':
+                AlexaInterface.logLevel = Alexa.Critical;
+                break;
+            case 'warning':
+                AlexaInterface.logLevel = Alexa.Warn;
+                break;
+            case 'error':
+                AlexaInterface.logLevel = Alexa.Error;
+                break;
+            case 'info':
+                AlexaInterface.logLevel = Alexa.Info;
+                break;
+            case 'debug0':
+                AlexaInterface.logLevel = Alexa.Debug0;
+                break;
+            case 'debug1':
+                AlexaInterface.logLevel = Alexa.Debug1;
+                break;
+            case 'debug2':
+                AlexaInterface.logLevel = Alexa.Debug2;
+                break;
+            case 'debug3':
+                AlexaInterface.logLevel = Alexa.Debug3;
+                break;
+            case 'debug4':
+                AlexaInterface.logLevel = Alexa.Debug4;
+                break;
+            case 'debug5':
+                AlexaInterface.logLevel = Alexa.Debug5;
+                break;
+            case 'debug6':
+                AlexaInterface.logLevel = Alexa.Debug6;
+                break;
+            case 'debug7':
+                AlexaInterface.logLevel = Alexa.Debug7;
+                break;
+            case 'debug8':
+                AlexaInterface.logLevel = Alexa.Debug8;
+                break;
+            case 'debug9':
+                AlexaInterface.logLevel = Alexa.Debug9;
+                break;
+            default:
+                AlexaInterface.logLevel = Alexa.Debug9;
+            }
+        } else {
+            AlexaInterface.logLevel = Alexa.Debug9;
+        }
+
+
         // For multi-process mode of QtAppMan all the paths for apps are relative to their main.qml.
         // But for single process mode all paths are relative to main.qml of the Neptune 3 UI
         // and we need to discover where we are. This is workaround to make Alexa app support

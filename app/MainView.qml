@@ -146,7 +146,6 @@ Item {
                         alexaAuth.reset()
                     }
                 }
-                Component.onCompleted: { AlexaInterface.logLevel = Alexa.Debug9 }
             }
 
             AuthWebPageInteraction {

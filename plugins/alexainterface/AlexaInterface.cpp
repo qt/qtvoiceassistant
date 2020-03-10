@@ -414,7 +414,7 @@ void AlexaInterface::initAlexaQMLClient(const QUrl &url)
                     configFileStd,
                     kwdModelPath.toStdString(),
                     url.toLocalFile().toStdString(),
-                    m_logLevelString.toStdString())) {
+                    m_logLevel)) {
             qCritical() << "Failed to initialize AlexaInterface.";
 #ifdef KWD
             qCritical() << "ALEXA_KWD_MODEL_PATH: " << kwdModelPath;
@@ -491,23 +491,15 @@ bool AlexaInterface::createMediaPlayersForAdapters(
 bool AlexaInterface::initialize(const std::vector<std::string>& configFiles,
         const std::string& kwdModelPath,
         const std::string& appRootPath,
-        const std::string& logLevel) {
+        const LogLevel logLevel) {
 
 #ifndef KWD
     Q_UNUSED(kwdModelPath)
     Q_UNUSED(appRootPath)
 #endif
 
-    avsCommon::utils::logger::Level logLevelValue = avsCommon::utils::logger::Level::UNKNOWN;
-    if (!logLevel.empty()) {
-        logLevelValue = getLogLevelFromUserInput(logLevel);
-        if (alexaClientSDK::avsCommon::utils::logger::Level::UNKNOWN == logLevelValue) {
-            for (auto it = allLevels.begin(); it != allLevels.end(); ++it) {
-                qDebug() << alexaClientSDK::avsCommon::utils::logger::convertLevelToName(*it).c_str();
-            }
-            return false;
-        }
-    }
+    setLogLevel(logLevel);
+    avsCommon::utils::logger::LoggerSinkManager::instance().initialize(m_consolePrinter);
 
     std::vector<std::shared_ptr<std::istream>> configJsonStreams;
 
@@ -1149,36 +1141,22 @@ void AlexaInterface::setLogLevel(AlexaInterface::LogLevel logLevel)
     if (m_logLevel == logLevel)
         return;
 
-    if (m_logLevel == LogLevel::Debug0) {
-        m_logLevelString = "DEBUG0";
-    } else if (m_logLevel == LogLevel::Debug1) {
-        m_logLevelString = "DEBUG1";
-    } else if (m_logLevel == LogLevel::Debug2) {
-        m_logLevelString = "DEBUG2";
-    } else if (m_logLevel == LogLevel::Debug3) {
-        m_logLevelString = "DEBUG3";
-    } else if (m_logLevel == LogLevel::Debug4) {
-        m_logLevelString = "DEBUG4";
-    } else if (m_logLevel == LogLevel::Debug5) {
-        m_logLevelString = "DEBUG5";
-    } else if (m_logLevel == LogLevel::Debug6) {
-        m_logLevelString = "DEBUG6";
-    } else if (m_logLevel == LogLevel::Debug7) {
-        m_logLevelString = "DEBUG7";
-    } else if (m_logLevel == LogLevel::Debug8) {
-        m_logLevelString = "DEBUG8";
-    } else if (m_logLevel == LogLevel::Debug9) {
-        m_logLevelString = "DEBUG9";
-    } else if (m_logLevel == LogLevel::Info) {
-        m_logLevelString = "INFO";
-    } else if (m_logLevel == LogLevel::Warn) {
-        m_logLevelString = "WARN";
-    } else if (m_logLevel == LogLevel::Error) {
-        m_logLevelString = "ERROR";
-    } else if (m_logLevel == LogLevel::Critical) {
-        m_logLevelString = "CRITICAL";
-    } else if (m_logLevel == LogLevel::None) {
-        m_logLevelString = "NONE";
+    switch (logLevel) {
+        case Debug0: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG0); break;
+        case Debug1: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG1); break;
+        case Debug2: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG2); break;
+        case Debug3: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG3); break;
+        case Debug4: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG4); break;
+        case Debug5: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG5); break;
+        case Debug6: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG6); break;
+        case Debug7: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG7); break;
+        case Debug8: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG8); break;
+        case Debug9: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::DEBUG9); break;
+        case Warn: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::WARN); break;
+        case Error: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::ERROR); break;
+        case Critical: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::CRITICAL); break;
+        case Info: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::INFO); break;
+        case None: m_consolePrinter->setLevel(avsCommon::utils::logger::Level::NONE); break;
     }
 
     m_logLevel = logLevel;

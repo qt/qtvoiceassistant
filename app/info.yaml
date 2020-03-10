@@ -14,6 +14,10 @@ name:
 
 categories: [ 'other' ]
 
+applicationProperties:
+    private:
+        # log level: 'none', 'critical', 'error', 'warning', 'info', 'debug0' .. 'debug9'
+        logLevel: 'warning'
 intents:
 - id: activate-app
 - id: trigger-voiceassistant
