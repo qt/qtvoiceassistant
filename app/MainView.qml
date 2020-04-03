@@ -162,6 +162,7 @@ Item {
                 anchors.fill: parent
                 visible: AlexaInterface.authState === Alexa.Refreshed
                 neptuneState: root.neptuneState
+                onCardShown: root.store.requestRaiseAppReceived()
             }
 
             AuthView {

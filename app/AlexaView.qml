@@ -46,6 +46,8 @@ Control {
 
     property string neptuneState: "Maximized"
 
+    signal cardShown()
+
     state: {
         if (neptuneState == "Maximized") {
             if (priv.activeCard) {
@@ -190,9 +192,11 @@ Control {
         target: AlexaInterface
         onCardReady: {
             if (card.type === BaseCard.Weather) {
+                root.cardShown();
                 priv.cardData = card
                 priv.createCardObjects("WeatherCard.qml")
             } else if (card.type === BaseCard.Info) {
+                root.cardShown();
                 priv.cardData = card
                 priv.createCardObjects("InfoCard.qml")
             } else if (card.type === BaseCard.VehicleIntent) {
