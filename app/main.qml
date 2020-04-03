@@ -70,7 +70,10 @@ ApplicationCCWindow {
     }
 
     Loader {
+        id: mainLoader
+
         source: "MainView.qml"
+        active: false
         onStatusChanged: {
             if (status === Loader.Error) {
                 alexaLoadErrorText.visible = true
@@ -84,14 +87,23 @@ ApplicationCCWindow {
             item.height = Qt.binding(function() { return root.exposedRect.height; })
             item.neptuneState = Qt.binding(function() { return root.neptuneState; })
             item.visible = Qt.binding(function() { return root.exposedRect.height > 0; })
-            item.store = alexaStore
+            item.store = storeLoader.item
         }
     }
 
-    AlexaStore {
-        id: alexaStore
-        onRequestRaiseAppReceived: {
-            root.riseWindow();
+    Loader {
+        id: storeLoader
+
+        source: "stores/AlexaStore.qml"
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                alexaLoadErrorText.visible = true;
+            }
+        }
+        onLoaded: {
+            alexaLoadErrorText.visible = false;
+            mainLoader.active = true;
+            storeLoader.item.requestRaiseAppReceived.connect(root.riseWindow);
         }
     }
 }
