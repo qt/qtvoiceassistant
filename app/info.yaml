@@ -1,23 +1,24 @@
 formatVersion: 1
-formatType: am-application
+formatType: am-package
 ---
 id:      'com.luxoft.alexa'
 icon:    'icon.png'
-runtime: qml
-code:    main.qml
-runtimeParameters:
-  importPaths: [ '.' , "./imports"]
-
 name:
   en: 'Alexa'
   de: 'Alexa'
 
-categories: [ 'other' ]
-
-applicationProperties:
-    private:
+applications:
+  - id:      'com.luxoft.alexa'
+    runtime: qml
+    code:    main.qml
+    runtimeParameters:
+      importPaths: [ '.' , "./imports"]
+    applicationProperties:
+      private:
         # log level: 'none', 'critical', 'error', 'warning', 'info', 'debug0' .. 'debug9'
         logLevel: 'warning'
+
+categories: [ 'other' ]
 intents:
 - id: activate-app
 - id: trigger-voiceassistant
